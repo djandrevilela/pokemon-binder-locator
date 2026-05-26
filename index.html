@@ -10,7 +10,7 @@
             --surface: #1a1d27;
             --surface2: #22263a;
             --border: #2e3350;
-            --accent: #6c63ff;
+            --accent: #7B2FBE;
             --accent2: #ff6584;
             --text: #e8eaf6;
             --text-muted: #8890b0;
@@ -20,6 +20,37 @@
             --radius: 12px;
             --shadow: 0 4px 24px rgba(0,0,0,0.4);
         }
+
+        /* ── ACCENT THEMES ── */
+        /* Pokéball Red */
+        html[data-theme="red"] { --accent: #E15151; --border: #3a2020; --surface2: #261414; }
+        html[data-theme="red"] body.light-mode { --accent: #D03030; --border: #f5c0c0; --surface2: #fff0f0; }
+
+        /* Pikachu Yellow */
+        html[data-theme="yellow"] { --accent: #FFCB05; --border: #3a3010; --surface2: #252008; }
+        html[data-theme="yellow"] body.light-mode { --accent: #C9960A; --border: #f5e4a0; --surface2: #fdf8e1; }
+
+        /* Pokémon Blue */
+        html[data-theme="blue"] { --accent: #2A75BB; --border: #15304a; --surface2: #0e2035; }
+        html[data-theme="blue"] body.light-mode { --accent: #1a5fa0; --border: #b8d4f0; --surface2: #e8f2fc; }
+
+        /* Pokémon Green */
+        html[data-theme="green"] { --accent: #4CAF50; --border: #1a3a1c; --surface2: #102212; }
+        html[data-theme="green"] body.light-mode { --accent: #2E7D32; --border: #b8e0ba; --surface2: #e8f5e9; }
+
+        /* Eevee Brown */
+        html[data-theme="brown"] { --accent: #A0522D; --border: #3a2010; --surface2: #221508; }
+        html[data-theme="brown"] body.light-mode { --accent: #7a3b1e; --border: #ddb898; --surface2: #fdf0e8; }
+
+        /* Ghost Purple */
+        html[data-theme="ghost"] { --accent: #7B2FBE; --border: #2e1545; --surface2: #1c0d2e; }
+        html[data-theme="ghost"] body.light-mode { --accent: #6a1fa8; --border: #d4aff0; --surface2: #f5eaff; }
+
+        /* Ice Blue */
+        html[data-theme="ice"] { --accent: #00BCD4; --border: #0a2e35; --surface2: #061c22; }
+        html[data-theme="ice"] body.light-mode { --accent: #0097A7; --border: #b2ebf2; --surface2: #e0f7fa; }
+
+
 
         .light-mode {
             --bg: #f0f2ff;
@@ -81,27 +112,7 @@
             flex-wrap: nowrap;
         }
 
-        @media (max-width: 560px) {
-    #supportBanner .banner-inner {
-      flex-direction: column !important;
-      align-items: center !important;
-      padding: 10px 16px 12px !important;
-      gap: 6px !important;
-      position: relative;
-    }
-    #supportBanner .banner-inner > div:first-child {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 3px;
-      width: 100%;
-    }
-    #supportBanner .banner-inner > div:first-child > span:first-child { display: none; }
-    #supportBanner #bannerSub { display: block !important; margin-left: 0 !important; }
-    #supportBanner .banner-inner > div:last-child { width: 100%; justify-content: center; }
-    #supportBanner #bannerCloseX { position: absolute; top: 8px; right: 10px; }
-  }
-  @media (max-width: 480px) {
+        @media (max-width: 480px) {
             .header-controls-top {
                 flex-wrap: wrap;
             }
@@ -198,6 +209,70 @@
                 .btn.primary:hover {
                     opacity: 0.85;
                 }
+            .grid-size-picker {
+                display: flex;
+                align-items: center;
+                gap: 2px;
+                background: var(--surface2);
+                border: 1px solid var(--border);
+                border-radius: 9px;
+                padding: 3px;
+            }
+            .theme-swatches {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-top: 4px;
+            }
+            .theme-swatch-row {
+                display: flex;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+            .theme-swatch {
+                width: 28px;
+                height: 28px;
+                border-radius: 7px;
+                cursor: pointer;
+                border: 2.5px solid transparent;
+                transition: transform 0.15s, border-color 0.15s;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+                flex-shrink: 0;
+            }
+            .theme-swatch:hover { transform: scale(1.15); }
+            .theme-swatch.active {
+                border-color: var(--text);
+                transform: scale(1.1);
+                box-shadow: 0 0 0 3px rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.3);
+            }
+            .grid-size-label {
+                font-size: 0.78rem;
+                padding: 0 5px 0 3px;
+                color: var(--text-muted);
+                user-select: none;
+            }
+            .grid-size-btn {
+                padding: 4px 10px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                border: none;
+                background: transparent;
+                color: var(--text-muted);
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background 0.15s, color 0.15s;
+                line-height: 1.4;
+            }
+            .grid-size-btn:hover:not(.primary) {
+                background: var(--border);
+                color: var(--text);
+            }
+            .grid-size-btn.primary {
+                background: var(--accent);
+                color: #fff;
+                box-shadow: 0 1px 4px rgba(108,99,255,0.3);
+            }
 
             .btn.danger:hover {
                 background: var(--danger);
@@ -394,7 +469,7 @@
 
         .binder-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(var(--binder-cols, 3), 1fr);
             gap: 5px;
             margin-top: 10px;
         }
@@ -820,15 +895,19 @@
         }
 
         /* BINDER MODE */
+        #binderPagesArea {
+            align-items: stretch;
+        }
+
         .binder-page {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 14px;
-            padding: 16px;
+            padding: 14px;
             box-shadow: var(--shadow);
             flex: 1;
-            min-width: 280px;
-            max-width: 420px;
+            min-width: calc(var(--binder-cols, 3) * 90px + 28px);
+            max-width: calc(var(--binder-cols, 3) * 130px + 28px);
         }
 
         .binder-page-title {
@@ -843,94 +922,77 @@
 
         .binder-page-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(var(--binder-cols, 3), 1fr);
+            gap: clamp(4px, 1vw, 10px);
         }
 
         .binder-slot {
             border: 1.5px solid var(--border);
-            border-radius: 10px;
-            padding: 8px 6px 6px;
+            border-radius: 8px;
+            padding: 6px 4px 5px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            gap: 2px;
             background: var(--surface2);
-            min-height: 110px;
+            aspect-ratio: 0.72;
             transition: border-color 0.15s, opacity 0.15s;
             position: relative;
+            overflow: hidden;
         }
 
-            .binder-slot.owned {
-                border-color: var(--accent);
-                opacity: 1;
-            }
-
-            .binder-slot.missing {
-                opacity: 0.22;
-            }
-
-            .binder-slot.empty {
-                opacity: 0.08;
-            }
-
-            .binder-slot.recent-add {
-            }
+            .binder-slot.owned { border-color: var(--accent); opacity: 1; }
+            .binder-slot.missing { opacity: 0.22; }
+            .binder-slot.empty { opacity: 0.08; }
+            .binder-slot.recent-add { }
 
             .binder-slot .slot-num {
                 position: absolute;
-                top: 5px;
-                left: 7px;
-                font-size: 0.62rem;
+                top: 4px;
+                left: 5px;
+                font-size: clamp(0.5rem, 0.8vw, 0.65rem);
                 color: var(--text-muted);
-                font-weight: 600;
+                font-weight: 700;
+                line-height: 1;
             }
 
             .binder-slot img {
-                width: 52px;
-                height: 52px;
+                width: 58%;
+                height: auto;
+                max-width: 64px;
                 object-fit: contain;
                 image-rendering: pixelated;
-                margin-top: 6px;
+                margin-top: 10px;
+                flex-shrink: 0;
             }
 
             .binder-slot .slot-dex {
-                font-size: 0.62rem;
+                font-size: clamp(0.48rem, 0.7vw, 0.62rem);
                 color: var(--text-muted);
                 font-weight: 500;
+                line-height: 1;
             }
 
             .binder-slot .slot-name {
-                font-size: 0.7rem;
+                font-size: clamp(0.5rem, 0.75vw, 0.68rem);
                 font-weight: 500;
                 text-align: center;
                 text-transform: capitalize;
-                line-height: 1.2;
+                line-height: 1.15;
+                word-break: break-word;
+                max-width: 100%;
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
             }
 
-            .binder-slot.recent-add .slot-name {
-                font-weight: 800;
-                color: var(--accent);
-            }
-
-            .binder-slot.empty .slot-name {
-                color: var(--text-muted);
-                font-size: 0.65rem;
-            }
+            .binder-slot.recent-add .slot-name { font-weight: 800; color: var(--accent); }
+            .binder-slot.empty .slot-name { color: var(--text-muted); }
 
         @media (max-width: 640px) {
-            .binder-slot {
-                min-height: 90px;
-            }
-
-                .binder-slot img {
-                    width: 40px;
-                    height: 40px;
-                }
-
-            .binder-page {
-                padding: 10px;
-            }
+            .binder-page { padding: 8px; min-width: 0; max-width: none; }
+            .binder-slot img { max-width: 48px; }
         }
 
         @media (max-width: 480px) {
@@ -985,6 +1047,11 @@
             </div>
         </div>
         <div class="header-row header-row-btns">
+            <div class="grid-size-picker" title="Tamanho do binder" aria-label="Tamanho do binder">
+              <button class="grid-size-btn" id="gridBtn2" onclick="saveGridSize(2)">2×2</button>
+              <button class="grid-size-btn" id="gridBtn3" onclick="saveGridSize(3)">3×3</button>
+              <button class="grid-size-btn" id="gridBtn4" onclick="saveGridSize(4)">4×4</button>
+            </div>
             <button class="btn primary" id="binderModeBtn" onclick="toggleBinderMode()">📖 My Binder</button>
             <button class="btn" onclick="exportJSON()" id="exportBtn">⬇ Exportar</button>
             <button class="btn" onclick="triggerImport()" id="importBtn">⬆ Importar</button>
@@ -1061,26 +1128,26 @@
         </div>
 
         <!-- SUPPORT BANNER (fixed) -->
-        <div id="supportBanner" style="position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,0.18);">
-            <div class="banner-inner" style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;gap:10px;">
-                <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
-                    <span style="font-size:1.1rem;flex-shrink:0;">☕</span>
-                    <div style="min-width:0;">
-                        <span style="font-size:0.84rem;font-weight:600;color:var(--text)" id="bannerTitle">Gostas da ferramenta?</span>
-                        <span style="font-size:0.78rem;color:var(--text-muted);margin-left:8px;" id="bannerSub">É gratuita. Um café ajuda muito!</span>
-                    </div>
+        <div id="supportBanner" style="position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,0.18);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:1.1rem;">☕</span>
+                <div>
+                    <span style="font-size:0.84rem;font-weight:600;color:var(--text)" id="bannerTitle">Gostas da ferramenta?</span>
+                    <span style="font-size:0.78rem;color:var(--text-muted);margin-left:8px;" id="bannerSub">É gratuita. Um café ajuda muito!</span>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
-                    <a href="https://ko-fi.com/djandrevilela" target="_blank" rel="noopener"
-                       style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#FF5E5B;color:#fff;border-radius:8px;font-size:0.8rem;font-weight:700;text-decoration:none;transition:opacity 0.15s;white-space:nowrap;"
-                       onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" id="bannerBtn">
-                        ☕ Ko-fi
-                    </a>
-                    <button onclick="document.getElementById('supportBanner').style.display='none';sessionStorage.setItem('pb_banner_closed','1');"
-                            style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;line-height:1;"
-                            onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'"
-                            title="Fechar" aria-label="Fechar banner" id="bannerCloseX">✕</button>
-                </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <a href="https://ko-fi.com/djandrevilela" target="_blank" rel="noopener"
+                   style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#FF5E5B;color:#fff;border-radius:8px;font-size:0.8rem;font-weight:700;text-decoration:none;transition:opacity 0.15s;white-space:nowrap;"
+                   onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" id="bannerBtn">
+                    ☕ Ko-fi
+                </a>
+                <button onclick="document.getElementById('supportBanner').style.display='none';sessionStorage.setItem('pb_banner_closed','1');"
+                        style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;line-height:1;"
+                        onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'"
+                        title="Fechar" aria-label="Fechar banner">
+                    ✕
+                </button>
             </div>
         </div>
 
@@ -1125,7 +1192,7 @@
             </div>
             <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
                 <!-- Binder pages -->
-                <div id="binderPagesArea" style="display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;gap:16px;flex-wrap:wrap;"></div>
+                <div id="binderPagesArea" style="display:flex;align-items:stretch;justify-content:center;padding:24px 16px;gap:20px;flex-wrap:wrap;"></div>
                 <!-- Collection list inside binder -->
                 <div style="padding:0 24px 24px;">
                     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);">
@@ -1211,6 +1278,24 @@
                        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" id="footerKofiBtn">
                         ☕ <span id="footerKofiBtnLabel"></span>
                     </a>
+                </div>
+
+                <!-- Theme customisation -->
+                <div>
+                    <div id="footerThemeTitle" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:10px;">Tema</div>
+                    <div class="theme-swatches">
+                        <div class="theme-swatch-row">
+                            <button class="theme-swatch" data-theme-name="ghost" style="background:#7B2FBE;" onclick="setAccentTheme('ghost')" title="Ghost Purple" aria-label="Tema ghost"></button>
+                            <button class="theme-swatch" data-theme-name="ice" style="background:#00BCD4;" onclick="setAccentTheme('ice')" title="Ice Blue" aria-label="Tema ice blue"></button>
+                            <button class="theme-swatch" data-theme-name="blue" style="background:#2A75BB;" onclick="setAccentTheme('blue')" title="Pokémon Blue" aria-label="Tema azul"></button>
+                            <button class="theme-swatch" data-theme-name="green" style="background:#4CAF50;" onclick="setAccentTheme('green')" title="Pokémon Green" aria-label="Tema verde"></button>
+                        </div>
+                        <div class="theme-swatch-row">
+                            <button class="theme-swatch" data-theme-name="red" style="background:#E15151;" onclick="setAccentTheme('red')" title="Pokéball Red" aria-label="Tema vermelho"></button>
+                            <button class="theme-swatch" data-theme-name="yellow" style="background:#FFCB05;" onclick="setAccentTheme('yellow')" title="Pikachu Yellow" aria-label="Tema amarelo"></button>
+                            <button class="theme-swatch" data-theme-name="brown" style="background:#A0522D;" onclick="setAccentTheme('brown')" title="Eevee Brown" aria-label="Tema castanho"></button>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -1418,26 +1503,18 @@ let acIndex = -1;
 let acResults = [];
 let filterMode = 'have';
 
-// ─── SEED DATA (user's existing collection) ───────────────────────────────────
-const SEED_DATA = [{"number":25,"name":"Pikachu"},{"number":39,"name":"Jigglypuff"},{"number":52,"name":"Meowth"},{"number":54,"name":"Psyduck"},{"number":58,"name":"Growlithe"},{"number":77,"name":"Ponyta"},{"number":81,"name":"Magnemite"},{"number":93,"name":"Haunter"},{"number":104,"name":"Cubone"},{"number":105,"name":"Marowak"},{"number":113,"name":"Chansey"},{"number":120,"name":"Staryu"},{"number":168,"name":"Ariados"},{"number":195,"name":"Quagsire"},{"number":197,"name":"Umbreon"},{"number":209,"name":"Snubbull"},{"number":214,"name":"Heracross"},{"number":242,"name":"Blissey"},{"number":281,"name":"Kirlia"},{"number":425,"name":"Drifloon"},{"number":448,"name":"Lucario"},{"number":450,"name":"Hippowdon"},{"number":464,"name":"Rhyperior"},{"number":495,"name":"Snivy"},{"number":496,"name":"Servine"},{"number":497,"name":"Serperior"},{"number":657,"name":"Frogadier"},{"number":660,"name":"Diggersby"},{"number":661,"name":"Fletchling"},{"number":662,"name":"Fletchinder"},{"number":666,"name":"Vivillon"},{"number":675,"name":"Pangoro"},{"number":676,"name":"Furfrou"},{"number":681,"name":"Aegislash"},{"number":699,"name":"Aurorus"},{"number":701,"name":"Hawlucha"},{"number":721,"name":"Volcanion"},{"number":760,"name":"Bewear"},{"number":777,"name":"Togedemaru"},{"number":813,"name":"Scorbunny"},{"number":844,"name":"Sandaconda"},{"number":859,"name":"Impidimp"},{"number":906,"name":"Sprigatito"},{"number":921,"name":"Pawmi"},{"number":924,"name":"Tandemaus"},{"number":950,"name":"Klawf"},{"number":955,"name":"Flittle"},{"number":967,"name":"Cyclizar"},{"number":974,"name":"Cetoddle"},{"number":975,"name":"Cetitan"},{"number":985,"name":"Scream Tail"},{"number":989,"name":"Sandy Shocks"},{"number":1005,"name":"Roaring Moon"}];
-
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function init() {
   POKEDEX = BUILTIN_POKEMON.map(([n, name]) => ({ entry_number: n, name }));
   loadCollection();
   loadCustomDexes();
-  // Seed existing data if collection is empty
-  if (!Object.keys(collection).length) {
-    SEED_DATA.forEach(e => {
-      const pos = calcPosition(e.number);
-      collection[e.number] = { number: e.number, name: e.name, ...pos };
-    });
-    saveCollection();
-  }
   renderList();
   renderStats();
   applyLang();
   rebuildGenSelects();
+  document.documentElement.style.setProperty('--binder-cols', GRID_SIZE);
+  updateGridSizeButtons();
+  applyAccentTheme();
 
   // Try to load user's pokedex JSON if it was imported before
   const saved = localStorage.getItem('pb_pokedex');
@@ -1500,13 +1577,67 @@ function restoreBackup() {
 }
 
 // ─── CALC ─────────────────────────────────────────────────────────────────────
+// ─── GRID SIZE ───────────────────────────────────────────────────────────────
+var GRID_SIZE = parseInt(localStorage.getItem('pb_grid_size') || '3'); // 2, 3, or 4
+
+function getSlotsPerPage() { return GRID_SIZE * GRID_SIZE; }
+
+function saveGridSize(size) {
+  GRID_SIZE = size;
+  localStorage.setItem('pb_grid_size', size);
+  // Recalculate all stored positions
+  Object.keys(collection).forEach(function(num) {
+    var n = parseInt(num);
+    var pos = calcPosition(n);
+    collection[n].page = pos.page;
+    collection[n].spot = pos.spot;
+    collection[n].spotLabel = pos.spotLabel;
+  });
+  saveCollection();
+  renderList();
+  renderStats();
+  applyLang();
+  if (document.getElementById('binderOverlay').style.display === 'flex') {
+    binderSpread = 0; renderBinderSpread(); renderBinderList();
+  }
+  updateGridSizeButtons();
+  document.documentElement.style.setProperty('--binder-cols', size);
+}
+
+function updateGridSizeButtons() {
+  [2,3,4].forEach(function(s) {
+    var btn = document.getElementById('gridBtn' + s);
+    if (btn) btn.classList.toggle('primary', GRID_SIZE === s);
+  });
+
+}
+
+function getSpotLabel(spot, size) {
+  // Generate position labels dynamically for any grid size
+  var labels = [];
+  for (var row = 0; row < size; row++) {
+    for (var col = 0; col < size; col++) {
+      var r = row === 0 ? 'Topo' : row === size-1 ? 'Base' : 'Centro';
+      var c = col === 0 ? 'esquerdo' : col === size-1 ? 'direito' : '';
+      if (row === 0 && col === 0) labels.push('Canto superior esquerdo');
+      else if (row === 0 && col === size-1) labels.push('Canto superior direito');
+      else if (row === 0) labels.push('Topo centro');
+      else if (row === size-1 && col === 0) labels.push('Canto inferior esquerdo');
+      else if (row === size-1 && col === size-1) labels.push('Canto inferior direito');
+      else if (row === size-1) labels.push('Base centro');
+      else if (col === 0) labels.push('Centro esquerdo');
+      else if (col === size-1) labels.push('Centro direito');
+      else labels.push('Centro');
+    }
+  }
+  return labels[spot - 1] || ('Slot ' + spot);
+}
+
 function calcPosition(num) {
-  const page = Math.ceil(num / 9);
-  const spot = ((num - 1) % 9) + 1;
-  const labels = ['Canto superior esquerdo','Topo centro','Canto superior direito',
-    'Centro esquerdo','Centro','Centro direito',
-    'Canto inferior esquerdo','Base centro','Canto inferior direito'];
-  const spotLabel = labels[spot - 1];
+  var spp = getSlotsPerPage();
+  const page = Math.ceil(num / spp);
+  const spot = ((num - 1) % spp) + 1;
+  const spotLabel = getSpotLabel(spot, GRID_SIZE);
   const sheetMode = document.getElementById('sheetModeToggle').checked;
   let sheetInfo = '';
   if (sheetMode) {
@@ -1635,7 +1766,9 @@ function renderResultBox(entry) {
 
   // Binder preview
   const grid = document.getElementById('binderPreview');
-  grid.innerHTML = Array.from({length:9},(_,i) =>
+  const sppP = getSlotsPerPage();
+  grid.style.gridTemplateColumns = 'repeat(' + GRID_SIZE + ', 1fr)';
+  grid.innerHTML = Array.from({length:sppP},(_,i) =>
     `<div class="binder-cell ${i+1===entry.spot?'active':''}">${i+1}</div>`
   ).join('');
 
@@ -1857,12 +1990,10 @@ function calcPositionInDex(dexNum) {
     if (entries[i].entry_number === dexNum) { dexPos = i + 1; break; }
   }
   if (dexPos < 0) return calcPosition(dexNum); // fallback to national
-  var page = Math.ceil(dexPos / 9);
-  var spot = ((dexPos - 1) % 9) + 1;
-  var labels = ['Canto superior esquerdo','Topo centro','Canto superior direito',
-    'Centro esquerdo','Centro','Centro direito',
-    'Canto inferior esquerdo','Base centro','Canto inferior direito'];
-  return { page: page, spot: spot, spotLabel: labels[spot-1], dexPos: dexPos };
+  var spp = getSlotsPerPage();
+  var page = Math.ceil(dexPos / spp);
+  var spot = ((dexPos - 1) % spp) + 1;
+  return { page: page, spot: spot, spotLabel: getSpotLabel(spot, GRID_SIZE), dexPos: dexPos };
 }
 
 // Rebuild gen filter selects with custom dexes
@@ -1957,6 +2088,23 @@ function saveCustomPokedex() {
 
 function closePokedexNameModal() {
   document.getElementById('pokedexNameModal').classList.remove('open');
+}
+
+
+// ─── ACCENT THEMES ───────────────────────────────────────────────────────────
+var ACCENT_THEME = localStorage.getItem('pb_accent_theme') || 'ghost';
+
+function setAccentTheme(name) {
+  ACCENT_THEME = name;
+  localStorage.setItem('pb_accent_theme', name);
+  applyAccentTheme();
+}
+
+function applyAccentTheme() {
+  document.documentElement.setAttribute('data-theme', ACCENT_THEME);
+  document.querySelectorAll('.theme-swatch').forEach(function(sw) {
+    sw.classList.toggle('active', sw.getAttribute('data-theme-name') === ACCENT_THEME);
+  });
 }
 
 // ─── GENERATION RANGES ───────────────────────────────────────────────────────
@@ -2076,17 +2224,19 @@ function renderStats() {
   let completeCount = 0;
   if (!sheetMode) {
     // A page is complete if all 9 slots are owned
+    const spp = getSlotsPerPage();
     const maxPage = entries.length ? Math.max(...entries.map(e => e.page)) : 0;
     for (let p = 1; p <= maxPage; p++) {
       let full = true;
-      for (let s = 1; s <= 9; s++) {
-        if (!owned.has((p - 1) * 9 + s)) { full = false; break; }
+      for (let s = 1; s <= spp; s++) {
+        if (!owned.has((p - 1) * spp + s)) { full = false; break; }
       }
       if (full) completeCount++;
     }
     document.getElementById('statMaxLbl').textContent = t('stats.complete');
   } else {
     // A sheet is complete if both front (odd page) and back (even page) are fully owned
+    const sppS = getSlotsPerPage();
     const maxPage = entries.length ? Math.max(...entries.map(e => e.page)) : 0;
     const maxSheet = Math.ceil(maxPage / 2);
     for (let sh = 1; sh <= maxSheet; sh++) {
@@ -2094,8 +2244,8 @@ function renderStats() {
       const backPage = sh * 2;
       let full = true;
       for (let pg of [frontPage, backPage]) {
-        for (let s = 1; s <= 9; s++) {
-          if (!owned.has((pg - 1) * 9 + s)) { full = false; break; }
+        for (let s = 1; s <= sppS; s++) {
+          if (!owned.has((pg - 1) * sppS + s)) { full = false; break; }
         }
         if (!full) break;
       }
@@ -2356,7 +2506,7 @@ function toggleBinderMode() {
 function maxBinderSpread() {
   var activeDex = getActiveDexEntries();
   if (!activeDex.length) return 0;
-  var totalPages = Math.ceil(activeDex.length / 9);
+  var totalPages = Math.ceil(activeDex.length / getSlotsPerPage());
   return Math.ceil((totalPages - 1) / 2);
 }
 
@@ -2370,7 +2520,7 @@ function binderPrev() {
 
 function pageHasAnyPokemon(pageNum) {
   var activeDex = getActiveDexEntries();
-  var startIdx = (pageNum - 1) * 9;
+  var startIdx = (pageNum - 1) * getSlotsPerPage();
   return startIdx < activeDex.length;
 }
 
@@ -2428,6 +2578,7 @@ function buildBinderPage(pageNum) {
     var side = pageNum % 2 !== 0 ? t('binder.front') : t('binder.back');
     titleText += ' · ' + t('binder.sheet') + ' ' + sheet + ' ' + side;
   }
+  wrap.setAttribute('data-grid', GRID_SIZE);
   wrap.innerHTML = '<div class="binder-page-title">' + titleText + '</div><div class="binder-page-grid" id="grid-p' + pageNum + '"></div>';
 
   var grid = wrap.querySelector('.binder-page-grid');
@@ -2435,8 +2586,9 @@ function buildBinderPage(pageNum) {
   var ONE_DAY = 86400000;
 
   var activeDex = getActiveDexEntries();
-  for (var slot = 1; slot <= 9; slot++) {
-    var dexIdx = (pageNum - 1) * 9 + slot - 1;
+  var spp = getSlotsPerPage();
+  for (var slot = 1; slot <= spp; slot++) {
+    var dexIdx = (pageNum - 1) * spp + slot - 1;
     var pokeEntry = activeDex[dexIdx] || null;
     var dexNum = pokeEntry ? pokeEntry.entry_number : null;
     var owned = dexNum ? collection[dexNum] : null;
@@ -2448,7 +2600,7 @@ function buildBinderPage(pageNum) {
     if (!pokeEntry) {
       cell.classList.add('empty');
       cell.innerHTML = '<span class="slot-num">' + slot + '</span>' +
-        '<div style="width:52px;height:52px;margin-top:6px;"></div>' +
+        '<div style="width:55%;max-width:64px;aspect-ratio:1;margin-top:10px;"></div>' +
         '<span class="slot-dex"></span>' +
         '<span class="slot-name">—</span>';
     } else {
@@ -2552,12 +2704,14 @@ var T = {
     'footer.how.offline': '📴 Funciona sem internet após carregamento',
     'footer.how.export': '📤 Exporta JSON regularmente para não perderes',
     'footer.how.pokedex': '📥 Importa Pokédex personalizadas com nome próprio',
-    'footer.how.calc': '📐 Fórmula: Página = ceil(n/9) · Slot = ((n-1)%9)+1',
+    'footer.how.calc': '📐 Fórmula: Página = ceil(n/S) · Slot = ((n-1)%S)+1  (S = slots por página)',
     'footer.support': 'Apoiar',
     'footer.support.desc': 'Esta ferramenta é gratuita e sem anúncios. Se te poupar tempo, considera apoiar o desenvolvimento.',
     'footer.kofi': 'Apoiar no Ko-fi',
     'footer.source': 'Código fonte',
     'footer.disclaimer': 'Não afiliado com The Pokémon Company, Nintendo ou Game Freak. Pokémon é marca registada dos respetivos proprietários.',
+    'footer.theme': 'Tema',
+    'footer.theme': 'Theme',
     'footer.github': 'GitHub',
 'pokedex.modal.title': 'Nome da Pokédex',
     'pokedex.modal.sub': 'Dá um nome a esta Pokédex para a encontrar facilmente.',
@@ -2596,9 +2750,9 @@ var T = {
       </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📐 Como funciona o cálculo</h4>
       <ul style="margin:8px 0 12px 16px;list-style:disc;">
-        <li><strong>Página:</strong> ceil(número / 9)</li>
-        <li><strong>Posição na página (1–9):</strong> ((número − 1) % 9) + 1</li>
-        <li>Grelha 3×3: posição 1 = canto sup. esq., 5 = centro, 9 = canto inf. dir.</li>
+        <li><strong>Página:</strong> ceil(n / S)  — S = tamanho da grelha²</li>
+        <li><strong>Slot (1–S):</strong> ((n − 1) % S) + 1</li>
+        <li>Grelha adaptável: 2×2 (4 slots), 3×3 (9 slots) ou 4×4 (16 slots)</li>
       </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📄 Modo Frente/Verso</h4>
       <p>Ativa no header. Cada folha física tem frente (página ímpar) e verso (página par). Ex: Folha 1 Frente = página 1, Folha 1 Verso = página 2.</p>
@@ -2694,7 +2848,7 @@ var T = {
     'footer.how.offline': '📴 Works offline after first load',
     'footer.how.export': '📤 Export JSON regularly to keep your data safe',
     'footer.how.pokedex': '📥 Import custom Pokédexes with a custom name',
-    'footer.how.calc': '📐 Formula: Page = ceil(n/9) · Slot = ((n-1)%9)+1',
+    'footer.how.calc': '📐 Formula: Page = ceil(n/S) · Slot = ((n-1)%S)+1  (S = slots per page)',
     'footer.support': 'Support',
     'footer.support.desc': 'This tool is free and ad-free. If it saves you time, consider supporting development.',
     'footer.kofi': 'Support on Ko-fi',
@@ -2735,9 +2889,9 @@ var T = {
       </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📐 How the calculation works</h4>
       <ul style="margin:8px 0 12px 16px;list-style:disc;">
-        <li><strong>Page:</strong> ceil(number / 9)</li>
-        <li><strong>Slot (1–9):</strong> ((number − 1) % 9) + 1</li>
-        <li>3×3 grid: slot 1 = top-left, 5 = centre, 9 = bottom-right</li>
+        <li><strong>Page:</strong> ceil(n / S)  — S = grid size²</li>
+        <li><strong>Slot (1–S):</strong> ((n − 1) % S) + 1</li>
+        <li>Adjustable grid: 2×2 (4 slots), 3×3 (9 slots) or 4×4 (16 slots)</li>
       </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📄 Front/Back Mode</h4>
       <p>Toggle in the header. Each physical sheet has a front (odd page) and back (even page). E.g. Sheet 1 Front = page 1, Sheet 1 Back = page 2.</p>
@@ -2833,12 +2987,13 @@ var T = {
     'footer.how.offline': '📴 初回読み込み後はオフラインで動作',
     'footer.how.export': '📤 定期的にJSONをエクスポートしてバックアップを',
     'footer.how.pokedex': '📥 カスタム図鑑を名前付きでインポート可能',
-    'footer.how.calc': '📐 計算式: ページ = ceil(n/9) · スロット = ((n-1)%9)+1',
+    'footer.how.calc': '📐 計算式: ページ = ceil(n/S) · スロット = ((n-1)%S)+1  (S = スロット数)',
     'footer.support': 'サポート',
     'footer.support.desc': '無料・広告なし。役に立ったらコーヒー1杯のご支援を！',
     'footer.kofi': 'Ko-fiでサポート',
     'footer.source': 'ソースコード',
     'footer.disclaimer': 'The Pokémon Company、任天堂、ゲームフリークとは無関係です。ポケモンはそれぞれの権利者の登録商標です。',
+    'footer.theme': 'テーマ',
     'footer.github': 'GitHub',
 
     'pokedex.modal.title': '図鑑の名前',
@@ -2875,9 +3030,9 @@ var T = {
       </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📐 計算方法</h4>
       <ul style="margin:8px 0 12px 16px;list-style:disc;">
-        <li><strong>ページ：</strong> ceil(番号 / 9)</li>
-        <li><strong>スロット（1〜9）：</strong> ((番号 − 1) % 9) + 1</li>
-        <li>3×3グリッド：1=左上、5=中央、9=右下</li>
+        <li><strong>ページ：</strong> ceil(n / S)  — S = グリッドサイズ²</li>
+        <li><strong>スロット（1〜S）：</strong> ((n − 1) % S) + 1</li>
+        <li>グリッドサイズ選択可：2×2（4スロット）、3×3（9スロット）、4×4（16スロット）</li>
       </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📄 表/裏モード</h4>
       <p>ヘッダーで切り替え。各シートは表（奇数ページ）と裏（偶数ページ）で構成。例：シート1表=1ページ目、シート1裏=2ページ目。</p>
@@ -3006,6 +3161,7 @@ function applyLang() {
   safeText('binderCollectionTitle', t('binder.collection'));
 
   // Footer
+  safeText('footerThemeTitle', t('footer.theme') || 'Tema');
   safeText('footerAbout', t('footer.about'));
   safeText('footerHowPokedex', t('footer.how.pokedex'));
   safeText('footerHowCalc', t('footer.how.calc'));

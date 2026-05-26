@@ -51,16 +51,16 @@ Page = ceil(n / 9)
 Slot = ((n − 1) mod 9) + 1
 ```
 
-Example: Pikachu (#25) → Page 3, Slot 7 (bottom-left)
+Example (3×3): Pikachu (#25) → Page 3, Slot 7 (bottom-left)
+Example (2×2): Pikachu (#25) → Page 7, Slot 1 (top-left)
 
 ---
 
 ## 🚀 Getting started
 
-Vvisit the live version at: **[Pokémon Binder Locator](https://djandrevilela.github.io/pokemon-binder-locator)**
+Download `index.html` and open it in any modern browser. That's it — no server, no install, no build step.
 
-Or download `index.html` and open it in any modern browser. That's it — no server, no install, no build step.
-
+Or visit the live version at: **[your-url-here]**
 
 ---
 
@@ -100,7 +100,7 @@ This data is available from the [PokéAPI](https://pokeapi.co/api/v2/pokedex/1/)
 
 This tool is free and will always be free. If it saves you time hunting through your binder, consider buying me a coffee:
 
-**[ko-fi.com/djandrevilela](https://ko-fi.com/djandrevilela)**
+**[ko-fi.com/YOUR_KOFI](https://ko-fi.com/YOUR_KOFI)**
 
 ---
 
