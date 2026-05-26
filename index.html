@@ -1,692 +1,1231 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pokémon Binder Locator</title>
-<style>
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3350;
-    --accent: #6c63ff;
-    --accent2: #ff6584;
-    --text: #e8eaf6;
-    --text-muted: #8890b0;
-    --success: #4caf7d;
-    --warning: #ffb347;
-    --danger: #ff6b6b;
-    --radius: 12px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.4);
-  }
-  .light-mode {
-    --bg: #f0f2ff;
-    --surface: #ffffff;
-    --surface2: #e8eaf6;
-    --border: #c5cae9;
-    --text: #1a1d27;
-    --text-muted: #5c6080;
-    --shadow: 0 4px 24px rgba(0,0,0,0.1);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    transition: background 0.3s, color 0.3s;
-  }
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 10px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow);
-  }
-  .header-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .header-row-top {
-    justify-content: space-between;
-  }
-  .header-row-btns {
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .header-controls-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: nowrap;
-  }
-  @media (max-width: 480px) {
-    .header-controls-top { flex-wrap: wrap; }
-  }
-  header h1 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    white-space: nowrap;
-  }
-  header h1 span.logo { font-size: 1.3rem; }
-  .toggle-label { font-size: 0.78rem; white-space: nowrap; }
-  .lang-select {
-    appearance: none;
-    margin-bottom: 0 !important;
-    cursor: pointer;
-    min-width: 0;
-    max-width: 140px;
-  }
-  .header-row-btns .btn { font-size: 0.78rem; padding: 7px 11px; }
-  @media (max-width: 600px) {
-    header { padding: 8px 12px; }
-    header h1 { font-size: 0.95rem; }
-    .header-row-btns .btn { font-size: 0.72rem; padding: 6px 8px; }
-    .lang-select { max-width: 110px; font-size: 0.74rem; }
-    .toggle-label { font-size: 0.72rem; }
-  }
-  .btn {
-    padding: 8px 14px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text);
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.82rem;
-    font-weight: 500;
-    transition: all 0.15s;
-    white-space: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn.primary:hover { opacity: 0.85; }
-  .btn.danger:hover { background: var(--danger); border-color: var(--danger); }
-  .btn.success:hover { background: var(--success); border-color: var(--success); }
-  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    box-shadow: var(--shadow);
-  }
-  .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
-  label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
-  input[type=text], input[type=number], select {
-    width: 100%;
-    padding: 10px 12px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-size: 0.95rem;
-    transition: border-color 0.15s;
-    margin-bottom: 12px;
-  }
-  input:focus, select:focus { outline: none; border-color: var(--accent); }
-  .search-wrap { position: relative; }
-  .search-wrap input { margin-bottom: 0; }
-  #autocomplete-box {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0; right: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    z-index: 200;
-    max-height: 220px;
-    overflow-y: auto;
-    box-shadow: var(--shadow);
-    display: none;
-  }
-  #autocomplete-box.open { display: block; }
-  .ac-item {
-    padding: 10px 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
-    transition: background 0.1s;
-  }
-  .ac-item:hover, .ac-item.active { background: var(--surface2); }
-  .ac-item img { width: 32px; height: 32px; object-fit: contain; }
-  .ac-num { font-size: 0.75rem; color: var(--text-muted); min-width: 36px; }
-  .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .form-row > * { flex: 1; min-width: 120px; }
-  .result-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-top: 14px;
-    display: none;
-    gap: 16px;
-    align-items: flex-start;
-  }
-  .result-box.visible { display: flex; }
-  .result-info { flex: 1; }
-  .result-info .result-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; text-transform: capitalize; }
-  .result-info .result-detail { font-size: 0.85rem; color: var(--text-muted); line-height: 1.8; }
-  .result-info .result-detail strong { color: var(--text); }
-  .result-img { width: 72px; height: 72px; object-fit: contain; border-radius: 8px; background: var(--surface); padding: 4px; }
-  .binder-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 5px;
-    margin-top: 10px;
-  }
-  .binder-cell {
-    aspect-ratio: 0.72;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    transition: all 0.2s;
-  }
-  .binder-cell.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    box-shadow: 0 0 12px rgba(108,99,255,0.5);
-    transform: scale(1.08);
-  }
-  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stat-chip {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-  }
-  .stat-chip .val { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
-  .stat-chip .lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
-  .search-filter-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .search-filter-bar input { flex: 1; min-width: 160px; margin-bottom: 0; }
-  .filter-tabs { display: flex; gap: 6px; }
-  .filter-tab {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    cursor: pointer;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-muted);
-    transition: all 0.15s;
-    font-weight: 500;
-  }
-  .filter-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .entries-list { display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 4px; }
-  .entries-list::-webkit-scrollbar { width: 5px; }
-  .entries-list::-webkit-scrollbar-track { background: transparent; }
-  .entries-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-  .entry-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: border-color 0.15s;
-  }
-  .entry-card:hover { border-color: var(--accent); }
-  .entry-card .num { font-size: 0.75rem; color: var(--text-muted); min-width: 34px; font-weight: 600; }
-  .entry-card .name { font-size: 0.92rem; font-weight: 600; text-transform: capitalize; flex: 1; }
-  .entry-card .loc { font-size: 0.75rem; color: var(--text-muted); }
-  .entry-card .actions { display: flex; gap: 6px; margin-left: auto; }
-  .entry-card .icon-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-muted);
-    padding: 4px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    transition: color 0.15s, background 0.15s;
-  }
-  .entry-card .icon-btn:hover { color: var(--text); background: var(--border); }
-  .entry-card .icon-btn.copy:hover { color: var(--success); }
-  .entry-card .icon-btn.del:hover { color: var(--danger); }
-  .entry-mini-img { width: 36px; height: 36px; object-fit: contain; }
-  .sheet-badge {
-    font-size: 0.7rem;
-    padding: 2px 7px;
-    border-radius: 20px;
-    font-weight: 600;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  .sheet-badge.front { color: var(--success); border-color: var(--success); }
-  .sheet-badge.back { color: var(--warning); border-color: var(--warning); }
-  .mode-toggle { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-muted); }
-  .toggle-sw {
-    position: relative;
-    width: 36px; height: 20px;
-    display: inline-block;
-  }
-  .toggle-sw input { opacity: 0; width: 0; height: 0; }
-  .toggle-sw .slider {
-    position: absolute; cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    transition: 0.2s;
-  }
-  .toggle-sw .slider:before {
-    position: absolute;
-    content: '';
-    height: 14px; width: 14px;
-    left: 2px; bottom: 2px;
-    background: var(--text-muted);
-    border-radius: 50%;
-    transition: 0.2s;
-  }
-  .toggle-sw input:checked + .slider { background: var(--accent); border-color: var(--accent); }
-  .toggle-sw input:checked + .slider:before { transform: translateX(16px); background: #fff; }
-  .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-  .toast {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 0.85rem;
-    box-shadow: var(--shadow);
-    animation: slideIn 0.2s ease;
-    max-width: 300px;
-  }
-  .toast.success { border-color: var(--success); color: var(--success); }
-  .toast.error { border-color: var(--danger); color: var(--danger); }
-  .toast.warn { border-color: var(--warning); color: var(--warning); }
-  @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 500;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    max-width: 420px;
-    width: 90%;
-    box-shadow: var(--shadow);
-  }
-  .modal h3 { margin-bottom: 12px; font-size: 1rem; }
-  .modal p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
-  .modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; }
-  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.9rem; }
-  .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; }
-  .drop-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    margin-top: 10px;
-  }
-  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(108,99,255,0.07); }
-  .missing-ranges { font-size: 0.8rem; color: var(--text-muted); line-height: 1.8; }
-  .missing-ranges span { background: var(--surface2); border-radius: 4px; padding: 1px 6px; margin: 2px; display: inline-block; }
-  kbd {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1px 6px;
-    font-size: 0.75rem;
-    font-family: monospace;
-    color: var(--text-muted);
-  }
-  .shortcut-hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
-  .has-pokemon { border-color: var(--success) !important; }
-  .entry-card .poke-sprite { width: 36px; height: 36px; image-rendering: pixelated; }
-  select { appearance: none; }
-  .section-gap { margin-top: 24px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Binder Locator</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #22263a;
+            --border: #2e3350;
+            --accent: #6c63ff;
+            --accent2: #ff6584;
+            --text: #e8eaf6;
+            --text-muted: #8890b0;
+            --success: #4caf7d;
+            --warning: #ffb347;
+            --danger: #ff6b6b;
+            --radius: 12px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+        }
 
-  /* BINDER MODE */
-  .binder-page {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    box-shadow: var(--shadow);
-    flex: 1;
-    min-width: 280px;
-    max-width: 420px;
-  }
-  .binder-page-title {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    text-align: center;
-    margin-bottom: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-  }
-  .binder-page-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-  .binder-slot {
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 6px 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    background: var(--surface2);
-    min-height: 110px;
-    transition: border-color 0.15s, opacity 0.15s;
-    position: relative;
-  }
-  .binder-slot.owned { border-color: var(--accent); opacity: 1; }
-  .binder-slot.missing { opacity: 0.22; }
-  .binder-slot.empty { opacity: 0.08; }
-  .binder-slot.recent-add { }
-  .binder-slot .slot-num {
-    position: absolute;
-    top: 5px; left: 7px;
-    font-size: 0.62rem;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-  .binder-slot img {
-    width: 52px; height: 52px;
-    object-fit: contain;
-    image-rendering: pixelated;
-    margin-top: 6px;
-  }
-  .binder-slot .slot-dex {
-    font-size: 0.62rem;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-  .binder-slot .slot-name {
-    font-size: 0.7rem;
-    font-weight: 500;
-    text-align: center;
-    text-transform: capitalize;
-    line-height: 1.2;
-  }
-  .binder-slot.recent-add .slot-name { font-weight: 800; color: var(--accent); }
-  .binder-slot.empty .slot-name { color: var(--text-muted); font-size: 0.65rem; }
-  @media (max-width: 640px) {
-    .binder-slot { min-height: 90px; }
-    .binder-slot img { width: 40px; height: 40px; }
-    .binder-page { padding: 10px; }
+        .light-mode {
+            --bg: #f0f2ff;
+            --surface: #ffffff;
+            --surface2: #e8eaf6;
+            --border: #c5cae9;
+            --text: #1a1d27;
+            --text-muted: #5c6080;
+            --shadow: 0 4px 24px rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .header-row-top {
+            justify-content: space-between;
+        }
+
+        .header-row-btns {
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .header-controls-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
+
+        @media (max-width: 560px) {
+    #supportBanner .banner-inner {
+      flex-direction: column !important;
+      align-items: center !important;
+      padding: 10px 16px 12px !important;
+      gap: 6px !important;
+      position: relative;
+    }
+    #supportBanner .banner-inner > div:first-child {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 3px;
+      width: 100%;
+    }
+    #supportBanner .banner-inner > div:first-child > span:first-child { display: none; }
+    #supportBanner #bannerSub { display: block !important; margin-left: 0 !important; }
+    #supportBanner .banner-inner > div:last-child { width: 100%; justify-content: center; }
+    #supportBanner #bannerCloseX { position: absolute; top: 8px; right: 10px; }
   }
   @media (max-width: 480px) {
-    header { padding: 12px 14px; }
-    header h1 { font-size: 1.1rem; }
-    .container { padding: 14px 10px; }
-    .card { padding: 14px; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-</style>
+            .header-controls-top {
+                flex-wrap: wrap;
+            }
+        }
+
+        header h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+            header h1 span.logo {
+                font-size: 1.3rem;
+            }
+
+        .toggle-label {
+            font-size: 0.78rem;
+            white-space: nowrap;
+        }
+
+        .lang-select {
+            appearance: none;
+            margin-bottom: 0 !important;
+            cursor: pointer;
+            min-width: 0;
+            max-width: 140px;
+        }
+
+        .header-row-btns .btn {
+            font-size: 0.78rem;
+            padding: 7px 11px;
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 8px 12px;
+            }
+
+                header h1 {
+                    font-size: 0.95rem;
+                }
+
+            .header-row-btns .btn {
+                font-size: 0.72rem;
+                padding: 6px 8px;
+            }
+
+            .lang-select {
+                max-width: 110px;
+                font-size: 0.74rem;
+            }
+
+            .toggle-label {
+                font-size: 0.72rem;
+            }
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: all 0.15s;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+            .btn:hover {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #fff;
+            }
+
+            .btn:focus {
+                outline: 2px solid var(--accent);
+                outline-offset: 2px;
+            }
+
+            .btn.primary {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #fff;
+            }
+
+                .btn.primary:hover {
+                    opacity: 0.85;
+                }
+
+            .btn.danger:hover {
+                background: var(--danger);
+                border-color: var(--danger);
+            }
+
+            .btn.success:hover {
+                background: var(--success);
+                border-color: var(--success);
+            }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        #siteFooter {
+            margin: 0 !important;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+            body > .container {
+                flex: 1;
+            }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 700px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+            .card h2 {
+                font-size: 1rem;
+                font-weight: 600;
+                margin-bottom: 14px;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+            }
+
+        label {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input[type=text], input[type=number], select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+            transition: border-color 0.15s;
+            margin-bottom: 12px;
+        }
+
+            input:focus, select:focus {
+                outline: none;
+                border-color: var(--accent);
+            }
+
+        .search-wrap {
+            position: relative;
+        }
+
+            .search-wrap input {
+                margin-bottom: 0;
+            }
+
+        #autocomplete-box {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            z-index: 200;
+            max-height: 220px;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+            #autocomplete-box.open {
+                display: block;
+            }
+
+        .ac-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            transition: background 0.1s;
+        }
+
+            .ac-item:hover, .ac-item.active {
+                background: var(--surface2);
+            }
+
+            .ac-item img {
+                width: 32px;
+                height: 32px;
+                object-fit: contain;
+            }
+
+        .ac-num {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 36px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+            .form-row > * {
+                flex: 1;
+                min-width: 120px;
+            }
+
+        .result-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-top: 14px;
+            display: none;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+            .result-box.visible {
+                display: flex;
+            }
+
+        .result-info {
+            flex: 1;
+        }
+
+            .result-info .result-name {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin-bottom: 6px;
+                text-transform: capitalize;
+            }
+
+            .result-info .result-detail {
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                line-height: 1.8;
+            }
+
+                .result-info .result-detail strong {
+                    color: var(--text);
+                }
+
+        .result-img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: var(--surface);
+            padding: 4px;
+        }
+
+        .binder-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .binder-cell {
+            aspect-ratio: 0.72;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+            .binder-cell.active {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #fff;
+                box-shadow: 0 0 12px rgba(108,99,255,0.5);
+                transform: scale(1.08);
+            }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .stat-chip {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+            .stat-chip .val {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: var(--accent);
+            }
+
+            .stat-chip .lbl {
+                font-size: 0.72rem;
+                color: var(--text-muted);
+                margin-top: 2px;
+            }
+
+        .search-filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+            .search-filter-bar input {
+                flex: 1;
+                min-width: 160px;
+                margin-bottom: 0;
+            }
+
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .filter-tab {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            transition: all 0.15s;
+            font-weight: 500;
+        }
+
+            .filter-tab.active {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #fff;
+            }
+
+        .entries-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+            .entries-list::-webkit-scrollbar {
+                width: 5px;
+            }
+
+            .entries-list::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .entries-list::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 3px;
+            }
+
+        .entry-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.15s;
+        }
+
+            .entry-card:hover {
+                border-color: var(--accent);
+            }
+
+            .entry-card .num {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                min-width: 34px;
+                font-weight: 600;
+            }
+
+            .entry-card .name {
+                font-size: 0.92rem;
+                font-weight: 600;
+                text-transform: capitalize;
+                flex: 1;
+            }
+
+            .entry-card .loc {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+            }
+
+            .entry-card .actions {
+                display: flex;
+                gap: 6px;
+                margin-left: auto;
+            }
+
+            .entry-card .icon-btn {
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: var(--text-muted);
+                padding: 4px;
+                border-radius: 5px;
+                font-size: 0.9rem;
+                transition: color 0.15s, background 0.15s;
+            }
+
+                .entry-card .icon-btn:hover {
+                    color: var(--text);
+                    background: var(--border);
+                }
+
+                .entry-card .icon-btn.copy:hover {
+                    color: var(--success);
+                }
+
+                .entry-card .icon-btn.del:hover {
+                    color: var(--danger);
+                }
+
+        .entry-mini-img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+
+        .sheet-badge {
+            font-size: 0.7rem;
+            padding: 2px 7px;
+            border-radius: 20px;
+            font-weight: 600;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+            .sheet-badge.front {
+                color: var(--success);
+                border-color: var(--success);
+            }
+
+            .sheet-badge.back {
+                color: var(--warning);
+                border-color: var(--warning);
+            }
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .toggle-sw {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            display: inline-block;
+        }
+
+            .toggle-sw input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .toggle-sw .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: var(--surface2);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                transition: 0.2s;
+            }
+
+                .toggle-sw .slider:before {
+                    position: absolute;
+                    content: '';
+                    height: 14px;
+                    width: 14px;
+                    left: 2px;
+                    bottom: 2px;
+                    background: var(--text-muted);
+                    border-radius: 50%;
+                    transition: 0.2s;
+                }
+
+            .toggle-sw input:checked + .slider {
+                background: var(--accent);
+                border-color: var(--accent);
+            }
+
+                .toggle-sw input:checked + .slider:before {
+                    transform: translateX(16px);
+                    background: #fff;
+                }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.2s ease;
+            max-width: 300px;
+        }
+
+            .toast.success {
+                border-color: var(--success);
+                color: var(--success);
+            }
+
+            .toast.error {
+                border-color: var(--danger);
+                color: var(--danger);
+            }
+
+            .toast.warn {
+                border-color: var(--warning);
+                color: var(--warning);
+            }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(40px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 500;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-overlay.open {
+                display: flex;
+            }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: var(--shadow);
+        }
+
+            .modal h3 {
+                margin-bottom: 12px;
+                font-size: 1rem;
+            }
+
+            .modal p {
+                font-size: 0.88rem;
+                color: var(--text-muted);
+                margin-bottom: 16px;
+                line-height: 1.6;
+            }
+
+            .modal .btn-row {
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+            }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+            .empty-state .icon {
+                font-size: 2.5rem;
+                margin-bottom: 8px;
+            }
+
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            margin-top: 10px;
+        }
+
+            .drop-zone:hover, .drop-zone.dragover {
+                border-color: var(--accent);
+                background: rgba(108,99,255,0.07);
+            }
+
+        .missing-ranges {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+            .missing-ranges span {
+                background: var(--surface2);
+                border-radius: 4px;
+                padding: 1px 6px;
+                margin: 2px;
+                display: inline-block;
+            }
+
+        kbd {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: var(--text-muted);
+        }
+
+        .shortcut-hint {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .has-pokemon {
+            border-color: var(--success) !important;
+        }
+
+        .entry-card .poke-sprite {
+            width: 36px;
+            height: 36px;
+            image-rendering: pixelated;
+        }
+
+        select {
+            appearance: none;
+        }
+
+        .section-gap {
+            margin-top: 24px;
+        }
+
+        /* BINDER MODE */
+        .binder-page {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            flex: 1;
+            min-width: 280px;
+            max-width: 420px;
+        }
+
+        .binder-page-title {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .binder-page-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .binder-slot {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 6px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            background: var(--surface2);
+            min-height: 110px;
+            transition: border-color 0.15s, opacity 0.15s;
+            position: relative;
+        }
+
+            .binder-slot.owned {
+                border-color: var(--accent);
+                opacity: 1;
+            }
+
+            .binder-slot.missing {
+                opacity: 0.22;
+            }
+
+            .binder-slot.empty {
+                opacity: 0.08;
+            }
+
+            .binder-slot.recent-add {
+            }
+
+            .binder-slot .slot-num {
+                position: absolute;
+                top: 5px;
+                left: 7px;
+                font-size: 0.62rem;
+                color: var(--text-muted);
+                font-weight: 600;
+            }
+
+            .binder-slot img {
+                width: 52px;
+                height: 52px;
+                object-fit: contain;
+                image-rendering: pixelated;
+                margin-top: 6px;
+            }
+
+            .binder-slot .slot-dex {
+                font-size: 0.62rem;
+                color: var(--text-muted);
+                font-weight: 500;
+            }
+
+            .binder-slot .slot-name {
+                font-size: 0.7rem;
+                font-weight: 500;
+                text-align: center;
+                text-transform: capitalize;
+                line-height: 1.2;
+            }
+
+            .binder-slot.recent-add .slot-name {
+                font-weight: 800;
+                color: var(--accent);
+            }
+
+            .binder-slot.empty .slot-name {
+                color: var(--text-muted);
+                font-size: 0.65rem;
+            }
+
+        @media (max-width: 640px) {
+            .binder-slot {
+                min-height: 90px;
+            }
+
+                .binder-slot img {
+                    width: 40px;
+                    height: 40px;
+                }
+
+            .binder-page {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 12px 14px;
+            }
+
+                header h1 {
+                    font-size: 1.1rem;
+                }
+
+            .container {
+                padding: 14px 10px;
+            }
+
+            .card {
+                padding: 14px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
 <body>
 
-<header>
-  <div class="header-row header-row-top">
-    <h1><span class="logo">📘</span> Pokémon Binder Locator</h1>
-    <div class="header-controls-top">
-      <div class="mode-toggle">
-        <span>☀️</span>
-        <label class="toggle-sw" title="Alternar tema claro/escuro">
-          <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
-          <span class="slider"></span>
-        </label>
-        <span>🌙</span>
-      </div>
-      <div class="mode-toggle">
-        <span class="toggle-label" id="sheetModeLabel">Frente/Verso</span>
-        <label class="toggle-sw" title="Modo frente/verso de folha">
-          <input type="checkbox" id="sheetModeToggle" onchange="renderList();renderStats()">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <select id="langSelect" onchange="setLang(this.value)" aria-label="Idioma" class="btn lang-select">
-        <option value="pt">🌐 Português</option>
-        <option value="en">🌐 English</option>
-        <option value="jp">🌐 日本語</option>
-      </select>
-    </div>
-  </div>
-  <div class="header-row header-row-btns">
-    <button class="btn primary" id="binderModeBtn" onclick="toggleBinderMode()">📖 My Binder</button>
-    <button class="btn" onclick="exportJSON()" id="exportBtn">⬇ Exportar</button>
-    <button class="btn" onclick="triggerImport()" id="importBtn">⬆ Importar</button>
-    <button class="btn" onclick="restoreBackup()" id="backupBtn">↩ Backup</button>
-    <button class="btn danger" onclick="confirmClearAll()" id="clearBtn">🗑 Limpar</button>
-    <button class="btn" onclick="openHelp()" id="helpBtn">❓ Como funciona</button>
-    <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)">
-  </div>
-</header>
-
-<div class="container">
-  <div class="grid-2">
-    <!-- LEFT: Add form -->
-    <div>
-      <div class="card">
-        <h2 id="addCardTitle">🔍 Adicionar Pokémon</h2>
-        <label for="pokeSearch" id="addLabel">Nome ou número <kbd>Enter</kbd> para guardar</label>
-        <div class="search-wrap" id="searchWrap">
-          <input type="text" id="pokeSearch" placeholder="Ex: pikachu, pika, 25..." autocomplete="off"
-            oninput="onSearchInput()" onkeydown="onSearchKey(event)" aria-label="Nome ou número do Pokémon" aria-autocomplete="list" aria-controls="autocomplete-box">
-          <div id="autocomplete-box" role="listbox"></div>
+    <header>
+        <div class="header-row header-row-top">
+            <h1><span class="logo">📘</span> Pokémon Binder Locator</h1>
+            <div class="header-controls-top">
+                <div class="mode-toggle">
+                    <span>☀️</span>
+                    <label class="toggle-sw" title="Alternar tema claro/escuro">
+                        <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+                        <span class="slider"></span>
+                    </label>
+                    <span>🌙</span>
+                </div>
+                <div class="mode-toggle">
+                    <span class="toggle-label" id="sheetModeLabel">Frente/Verso</span>
+                    <label class="toggle-sw" title="Modo frente/verso de folha">
+                        <input type="checkbox" id="sheetModeToggle" onchange="renderList();renderStats()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <select id="langSelect" onchange="setLang(this.value)" aria-label="Idioma" class="btn lang-select">
+                    <option value="pt">🌐 Português</option>
+                    <option value="en">🌐 English</option>
+                    <option value="jp">🌐 日本語</option>
+                </select>
+            </div>
         </div>
-        <div class="shortcut-hint" id="searchHint">Pesquisa parcial suportada · <kbd>↑↓</kbd> navegar · <kbd>Esc</kbd> limpar · <kbd>Ctrl+F</kbd> focar</div>
+        <div class="header-row header-row-btns">
+            <button class="btn primary" id="binderModeBtn" onclick="toggleBinderMode()">📖 My Binder</button>
+            <button class="btn" onclick="exportJSON()" id="exportBtn">⬇ Exportar</button>
+            <button class="btn" onclick="triggerImport()" id="importBtn">⬆ Importar</button>
+            <button class="btn" onclick="triggerPokedexImport()" id="pokedexImportBtn">📥 Importar Pokédex</button>
+            <button class="btn" onclick="restoreBackup()" id="backupBtn">↩ Backup</button>
+            <button class="btn danger" onclick="confirmClearAll()" id="clearBtn">🗑 Limpar</button>
+            <button class="btn" onclick="openHelp()" id="helpBtn">❓ Como funciona</button>
+            <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)">
+            <input type="file" id="pokedexImportInput" accept=".json" style="display:none" onchange="importPokedexFile(event)">
+        </div>
+    </header>
 
-        <div id="resultBox" class="result-box" role="region" aria-live="polite">
-          <div class="result-info">
-            <div class="result-name" id="rName">—</div>
-            <div class="result-detail" id="rDetail">—</div>
-            <div class="binder-grid" id="binderPreview" aria-label="Pré-visualização da grelha do binder"></div>
-          </div>
-          <img id="rImg" class="result-img" src="" alt="" style="display:none">
+    <div class="container" style="padding-bottom:20px;">
+        <div class="grid-2">
+            <!-- LEFT: Add form -->
+            <div>
+                <div class="card">
+                    <h2 id="addCardTitle">🔍 Adicionar Pokémon</h2>
+                    <label for="pokeSearch" id="addLabel">Nome ou número <kbd>Enter</kbd> para guardar</label>
+                    <div class="search-wrap" id="searchWrap">
+                        <input type="text" id="pokeSearch" placeholder="Ex: pikachu, pika, 25..." autocomplete="off"
+                               oninput="onSearchInput()" onkeydown="onSearchKey(event)" aria-label="Nome ou número do Pokémon" aria-autocomplete="list" aria-controls="autocomplete-box">
+                        <div id="autocomplete-box" role="listbox"></div>
+                    </div>
+                    <div class="shortcut-hint" id="searchHint">Pesquisa parcial suportada · <kbd>↑↓</kbd> navegar · <kbd>Esc</kbd> limpar · <kbd>Ctrl+F</kbd> focar</div>
+
+                    <div id="resultBox" class="result-box" role="region" aria-live="polite">
+                        <div class="result-info">
+                            <div class="result-name" id="rName">—</div>
+                            <div class="result-detail" id="rDetail">—</div>
+                            <div class="binder-grid" id="binderPreview" aria-label="Pré-visualização da grelha do binder"></div>
+                        </div>
+                        <img id="rImg" class="result-img" src="" alt="" style="display:none">
+                    </div>
+
+                    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="btn primary" onclick="saveEntry()" id="saveBtnLabel" style="flex:1">✅ Guardar</button>
+                        <button class="btn" onclick="clearInputs()" id="clearBtnLabel">✕ Limpar</button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="card section-gap">
+                    <h2 id="statsCardTitle">📊 Estatísticas</h2>
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-chip"><div class="val" id="statTotal">0</div><div class="lbl" id="lbl-total">Total guardados</div></div>
+                        <div class="stat-chip"><div class="val" id="statPages">0</div><div class="lbl" id="lbl-pages">Páginas ocupadas</div></div>
+                        <div class="stat-chip"><div class="val" id="statMax">—</div><div class="lbl" id="statMaxLbl">Págs. completas</div></div>
+                        <div class="stat-chip"><div class="val" id="statGens">—</div><div class="lbl" id="lbl-gens">Gens. completas</div></div>
+                    </div>
+                    <div style="margin-top:14px">
+                        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px" id="missingLabel">Intervalos em falta (primeiros 50)</div>
+                        <div class="missing-ranges" id="missingRanges">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: List -->
+            <div>
+                <div class="card" style="height:100%">
+                    <h2 id="listCardTitle">📋 Coleção</h2>
+                    <div class="search-filter-bar">
+                        <input type="text" id="filterInput" placeholder="🔎  Filtrar coleção..." oninput="renderList()" aria-label="Filtrar coleção">
+                        <div class="filter-tabs">
+                            <button class="filter-tab" onclick="setFilter('all',this)" title="Todos" data-filter="all">Todos</button>
+                            <button class="filter-tab active" onclick="setFilter('have',this)" title="Tenho" data-filter="have">✅ Tenho</button>
+                            <button class="filter-tab" onclick="setFilter('missing',this)" title="Falta" data-filter="missing">❌ Falta</button>
+                        </div>
+                        <select id="genFilter" onchange="onGenChange()" aria-label="Filtrar por geração" style="margin-bottom:0;min-width:130px;flex:0 0 auto;"></select>
+                    </div>
+                    <div class="entries-list" id="entriesList" aria-label="Lista de Pokémon guardados"></div>
+                </div>
+            </div>
         </div>
 
-        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn primary" onclick="saveEntry()" id="saveBtnLabel" style="flex:1">✅ Guardar</button>
-          <button class="btn" onclick="clearInputs()" id="clearBtnLabel">✕ Limpar</button>
+        <!-- SUPPORT BANNER (fixed) -->
+        <div id="supportBanner" style="position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,0.18);">
+            <div class="banner-inner" style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;gap:10px;">
+                <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+                    <span style="font-size:1.1rem;flex-shrink:0;">☕</span>
+                    <div style="min-width:0;">
+                        <span style="font-size:0.84rem;font-weight:600;color:var(--text)" id="bannerTitle">Gostas da ferramenta?</span>
+                        <span style="font-size:0.78rem;color:var(--text-muted);margin-left:8px;" id="bannerSub">É gratuita. Um café ajuda muito!</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+                    <a href="https://ko-fi.com/djandrevilela" target="_blank" rel="noopener"
+                       style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#FF5E5B;color:#fff;border-radius:8px;font-size:0.8rem;font-weight:700;text-decoration:none;transition:opacity 0.15s;white-space:nowrap;"
+                       onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" id="bannerBtn">
+                        ☕ Ko-fi
+                    </a>
+                    <button onclick="document.getElementById('supportBanner').style.display='none';sessionStorage.setItem('pb_banner_closed','1');"
+                            style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;line-height:1;"
+                            onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'"
+                            title="Fechar" aria-label="Fechar banner" id="bannerCloseX">✕</button>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Stats -->
-      <div class="card section-gap">
-        <h2 id="statsCardTitle">📊 Estatísticas</h2>
-        <div class="stats-grid" id="statsGrid">
-          <div class="stat-chip"><div class="val" id="statTotal">0</div><div class="lbl" id="lbl-total">Total guardados</div></div>
-          <div class="stat-chip"><div class="val" id="statPages">0</div><div class="lbl" id="lbl-pages">Páginas ocupadas</div></div>
-          <div class="stat-chip"><div class="val" id="statMax">—</div><div class="lbl" id="statMaxLbl">Págs. completas</div></div>
-          <div class="stat-chip"><div class="val" id="statGens">—</div><div class="lbl" id="lbl-gens">Gens. completas</div></div>
+        <!-- HELP MODAL -->
+        <div class="modal-overlay" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+            <div class="modal" style="max-width:560px;max-height:80vh;overflow-y:auto;">
+                <h3 id="helpModalTitle" data-i18n="help.title">❓ Como funciona</h3>
+                <div id="helpContent" style="font-size:0.88rem;color:var(--text-muted);line-height:1.75;"></div>
+                <div class="btn-row" style="margin-top:18px;">
+                    <button class="btn primary" onclick="closeHelp()" data-i18n="help.close">Fechar</button>
+                </div>
+            </div>
         </div>
-        <div style="margin-top:14px">
-          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px" id="missingLabel">Intervalos em falta (primeiros 50)</div>
-          <div class="missing-ranges" id="missingRanges">—</div>
+        <!-- Toast container -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- Confirm modal -->
+        <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true">
+            <div class="modal">
+                <h3 id="confirmTitle">Confirmar</h3>
+                <p id="confirmMsg">Tens a certeza?</p>
+                <div class="btn-row">
+                    <button class="btn" id="confirmCancelBtn" onclick="closeModal()">Cancelar</button>
+                    <button class="btn danger" id="confirmOk" onclick="">Confirmar</button>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- RIGHT: List -->
-    <div>
-      <div class="card" style="height:100%">
-        <h2 id="listCardTitle">📋 Coleção</h2>
-        <div class="search-filter-bar">
-          <input type="text" id="filterInput" placeholder="🔎  Filtrar coleção..." oninput="renderList()" aria-label="Filtrar coleção">
-          <div class="filter-tabs">
-            <button class="filter-tab" onclick="setFilter('all',this)" title="Todos" data-filter="all">Todos</button>
-            <button class="filter-tab active" onclick="setFilter('have',this)" title="Tenho" data-filter="have">✅ Tenho</button>
-            <button class="filter-tab" onclick="setFilter('missing',this)" title="Falta" data-filter="missing">❌ Falta</button>
-          </div>
-          <select id="genFilter" onchange="renderList()" aria-label="Filtrar por geração" style="margin-bottom:0;min-width:110px;flex:0 0 auto;">
-            <option value="0">🌍 Nacional</option>
-            <option value="1">Gen I</option>
-            <option value="2">Gen II</option>
-            <option value="3">Gen III</option>
-            <option value="4">Gen IV</option>
-            <option value="5">Gen V</option>
-            <option value="6">Gen VI</option>
-            <option value="7">Gen VII</option>
-            <option value="8">Gen VIII</option>
-            <option value="9">Gen IX</option>
-          </select>
+
+        <!-- BINDER MODE OVERLAY -->
+        <div id="binderOverlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow:hidden;flex-direction:column;">
+            <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                <div style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:10px;">
+                    📖 My Binder
+                    <span id="binderPageLabel" style="font-size:0.82rem;color:var(--text-muted);font-weight:400;"></span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <button class="btn" onclick="binderPrev()" id="binderPrevBtn">◀ Anterior</button>
+                    <button class="btn" onclick="binderNext()" id="binderNextBtn">Seguinte ▶</button>
+                    <button class="btn" onclick="toggleBinderMode()" id="binderCloseBtn">✕ Fechar</button>
+                </div>
+            </div>
+            <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
+                <!-- Binder pages -->
+                <div id="binderPagesArea" style="display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;gap:16px;flex-wrap:wrap;"></div>
+                <!-- Collection list inside binder -->
+                <div style="padding:0 24px 24px;">
+                    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);">
+                        <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:12px;" id="binderCollectionTitle">📋 Coleção</div>
+                        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+                            <input type="text" id="binderFilterInput" placeholder="🔎  Filtrar..." oninput="renderBinderList()"
+                                   style="flex:1;min-width:140px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;margin-bottom:0;">
+                            <div class="filter-tabs">
+                                <button class="filter-tab" onclick="setBinderFilter('all',this)" data-filter="all">Todos</button>
+                                <button class="filter-tab active" onclick="setBinderFilter('have',this)" data-filter="have">✅ Tenho</button>
+                                <button class="filter-tab" onclick="setBinderFilter('missing',this)" data-filter="missing">❌ Falta</button>
+                            </div>
+                            <select id="binderGenFilter" onchange="onBinderGenChange()" aria-label="Filtrar por geração" style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.82rem;min-width:130px;"></select>
+                        </div>
+                        <div id="binderEntriesList" class="entries-list" style="max-height:360px;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="entries-list" id="entriesList" aria-label="Lista de Pokémon guardados"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Drag & Drop Import -->
-  <div class="card section-gap" id="dropCard">
-    <h2 id="dragTitle">📂 Importar por Arrastar</h2>
-    <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Zona de arrastar e largar JSON"
-      ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"
-      onclick="triggerImport()">
-      Arrasta um ficheiro <strong>.json</strong> aqui ou clica para selecionar
-    </div>
-  </div>
-</div>
-
-<!-- SUPPORT BANNER -->
-<div id="supportBanner" style="background:var(--surface);border-top:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:0;">
-  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <span style="font-size:1.2rem;">☕</span>
-    <div>
-      <div style="font-size:0.85rem;font-weight:600;color:var(--text)" id="bannerTitle">Gostas da ferramenta?</div>
-      <div style="font-size:0.78rem;color:var(--text-muted)" id="bannerSub">É gratuita e sem anúncios. Se quiser apoiar, um café ajuda muito!</div>
-    </div>
-  </div>
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <a href="https://ko-fi.com/djandrevilela" target="_blank" rel="noopener"
-       style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#FF5E5B;color:#fff;border-radius:8px;font-size:0.82rem;font-weight:700;text-decoration:none;transition:opacity 0.15s;"
-       onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1" id="bannerBtn">
-      ☕ Ko-fi
-    </a>
-    <button onclick="document.getElementById('supportBanner').style.display='none';localStorage.setItem('pb_banner_closed','1');"
-      style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;transition:color 0.15s;"
-      onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'"
-      id="bannerClose" title="Fechar">✕</button>
-  </div>
-</div>
-
-<!-- HELP MODAL -->
-<div class="modal-overlay" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
-  <div class="modal" style="max-width:560px;max-height:80vh;overflow-y:auto;">
-    <h3 id="helpModalTitle" data-i18n="help.title">❓ Como funciona</h3>
-    <div id="helpContent" style="font-size:0.88rem;color:var(--text-muted);line-height:1.75;"></div>
-    <div class="btn-row" style="margin-top:18px;">
-      <button class="btn primary" onclick="closeHelp()" data-i18n="help.close">Fechar</button>
-    </div>
-  </div>
-</div>
-<!-- Toast container -->
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- Confirm modal -->
-<div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true">
-  <div class="modal">
-    <h3 id="confirmTitle">Confirmar</h3>
-    <p id="confirmMsg">Tens a certeza?</p>
-    <div class="btn-row">
-      <button class="btn" id="confirmCancelBtn" onclick="closeModal()">Cancelar</button>
-      <button class="btn danger" id="confirmOk" onclick="">Confirmar</button>
-    </div>
-  </div>
-</div>
 
 
-<!-- BINDER MODE OVERLAY -->
-<div id="binderOverlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow:hidden;flex-direction:column;">
-  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-    <div style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:10px;">
-      📖 My Binder
-      <span id="binderPageLabel" style="font-size:0.82rem;color:var(--text-muted);font-weight:400;"></span>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button class="btn" onclick="binderPrev()" id="binderPrevBtn">◀ Anterior</button>
-      <button class="btn" onclick="binderNext()" id="binderNextBtn">Seguinte ▶</button>
-      <button class="btn" onclick="toggleBinderMode()" id="binderCloseBtn">✕ Fechar</button>
-    </div>
-  </div>
-  <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
-    <!-- Binder pages -->
-    <div id="binderPagesArea" style="display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;gap:16px;flex-wrap:wrap;"></div>
-    <!-- Collection list inside binder -->
-    <div style="padding:0 24px 24px;">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);">
-        <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:12px;" id="binderCollectionTitle">📋 Coleção</div>
-        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-          <input type="text" id="binderFilterInput" placeholder="🔎  Filtrar..." oninput="renderBinderList()"
-            style="flex:1;min-width:140px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;margin-bottom:0;">
-          <div class="filter-tabs">
-            <button class="filter-tab" onclick="setBinderFilter('all',this)" data-filter="all">Todos</button>
-            <button class="filter-tab active" onclick="setBinderFilter('have',this)" data-filter="have">✅ Tenho</button>
-            <button class="filter-tab" onclick="setBinderFilter('missing',this)" data-filter="missing">❌ Falta</button>
-          </div>
-          <select id="binderGenFilter" onchange="renderBinderList()" aria-label="Filtrar por geração" style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.82rem;">
-            <option value="0">🌍 Nacional</option>
-            <option value="1">Gen I</option>
-            <option value="2">Gen II</option>
-            <option value="3">Gen III</option>
-            <option value="4">Gen IV</option>
-            <option value="5">Gen V</option>
-            <option value="6">Gen VI</option>
-            <option value="7">Gen VII</option>
-            <option value="8">Gen VIII</option>
-            <option value="9">Gen IX</option>
-          </select>
+        <!-- POKÉDEX NAME MODAL -->
+        <div class="modal-overlay" id="pokedexNameModal" role="dialog" aria-modal="true">
+            <div class="modal" style="max-width:380px;">
+                <h3 id="pokedexNameTitle">📂 Nome da Pokédex</h3>
+                <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">
+                    <span id="pokedexEntryCount"></span> — dá um nome a esta Pokédex para a encontrar facilmente na lista.
+                </p>
+                <input type="text" id="pokedexNameInput" placeholder="Ex: Hoenn Regional, Set XY..."
+                       style="width:100%;margin-bottom:14px;" onkeydown="if(event.key==='Enter')saveCustomPokedex()">
+                <div class="btn-row">
+                    <button class="btn" onclick="closePokedexNameModal()">Cancelar</button>
+                    <button class="btn primary" onclick="saveCustomPokedex()">✅ Guardar</button>
+                </div>
+            </div>
         </div>
-        <div id="binderEntriesList" class="entries-list" style="max-height:360px;"></div>
-      </div>
     </div>
-  </div>
-</div>
+
+    <!-- FOOTER -->
+    <footer id="siteFooter" style="background:var(--surface);border-top:1px solid var(--border);padding:16px 16px 90px;margin:0;">
+        <div style="max-width:1100px;margin:0 auto;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:20px 28px;padding-bottom:16px;">
+
+                <!-- About -->
+                <div>
+                    <div style="font-size:1rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:7px;">📘 Pokémon Binder Locator</div>
+                    <p id="footerAbout" style="font-size:0.78rem;color:var(--text-muted);line-height:1.7;margin:0 0 8px;"></p>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <span style="font-size:0.68rem;padding:2px 7px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);">v1.0.0</span>
+                        <span style="font-size:0.68rem;padding:2px 7px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);">PT · EN · JP</span>
+                        <span style="font-size:0.68rem;padding:2px 7px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);">MIT</span>
+                    </div>
+                </div>
+
+                <!-- Developer -->
+                <div>
+                    <div id="footerDevTitle" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:8px;"></div>
+                    <a href="https://github.com/djandrevilela" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-size:0.82rem;display:inline-flex;align-items:center;gap:6px;margin-bottom:6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" /></svg>
+                        <span id="footerGithubLabel"></span>
+                    </a>
+                    <p id="footerContact" style="font-size:0.76rem;color:var(--text-muted);margin:0;line-height:1.6;"></p>
+                </div>
+
+                <!-- How it works -->
+                <div>
+                    <div id="footerHowTitle" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:8px;"></div>
+                    <ul style="font-size:0.77rem;color:var(--text-muted);line-height:1.85;margin:0;padding:0;list-style:none;">
+                        <li id="footerHowLocal"></li>
+                        <li id="footerHowOffline"></li>
+                        <li id="footerHowExport"></li>
+                        <li id="footerHowPokedex"></li>
+                        <li id="footerHowCalc"></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <div id="footerSupportTitle" style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:8px;"></div>
+                    <p id="footerSupportDesc" style="font-size:0.77rem;color:var(--text-muted);line-height:1.6;margin:0 0 10px;"></p>
+                    <a href="https://ko-fi.com/djandrevilela" target="_blank" rel="noopener"
+                       style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#FF5E5B;color:#fff;border-radius:8px;font-size:0.8rem;font-weight:700;text-decoration:none;transition:opacity 0.15s;"
+                       onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'" id="footerKofiBtn">
+                        ☕ <span id="footerKofiBtnLabel"></span>
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- Bottom bar -->
+            <div style="padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+                <p id="footerDisclaimer" style="font-size:0.68rem;color:var(--text-muted);margin:0;"></p>
+                <p style="font-size:0.68rem;color:var(--text-muted);margin:0;white-space:nowrap;">MIT · <a href="https://github.com/djandrevilela/pokemon-binder-locator" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;" id="footerSourceLink"></a></p>
+            </div>
+        </div>
+    </footer>
 
 </body>
 </html>
-<script>
-// ─── POKEDEX DATA (embedded, full gen 1-9) ───────────────────────────────────
+<script>// ─── POKEDEX DATA (embedded, full gen 1-9) ───────────────────────────────────
 // We embed just enough data for autocomplete. Full list loaded from JSON if provided.
 // Fallback: build from known ranges using PokéAPI naming convention.
 
@@ -886,6 +1425,7 @@ const SEED_DATA = [{"number":25,"name":"Pikachu"},{"number":39,"name":"Jigglypuf
 function init() {
   POKEDEX = BUILTIN_POKEMON.map(([n, name]) => ({ entry_number: n, name }));
   loadCollection();
+  loadCustomDexes();
   // Seed existing data if collection is empty
   if (!Object.keys(collection).length) {
     SEED_DATA.forEach(e => {
@@ -897,6 +1437,7 @@ function init() {
   renderList();
   renderStats();
   applyLang();
+  rebuildGenSelects();
 
   // Try to load user's pokedex JSON if it was imported before
   const saved = localStorage.getItem('pb_pokedex');
@@ -908,7 +1449,7 @@ function init() {
   }
 
   // Hide banner if previously closed
-  if (localStorage.getItem('pb_banner_closed')) {
+  if (sessionStorage.getItem('pb_banner_closed')) {
     var b = document.getElementById('supportBanner');
     if (b) b.style.display = 'none';
   }
@@ -1022,7 +1563,7 @@ function renderAutocomplete() {
     const inColl = collection[p.entry_number];
     const badge = inColl ? '✅' : '';
     return `<div class="ac-item ${i===acIndex?'active':''}" role="option" onclick="selectAcResult(POKEDEX.find(x=>x.entry_number===${p.entry_number}))">
-      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.entry_number}.png" 
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.entry_number}.png"
         alt="${p.name}" onerror="this.style.display='none'" loading="lazy">
       <span class="ac-num">#${p.entry_number}</span>
       <span style="text-transform:capitalize;flex:1">${highlightMatch(getPokeLocalName(p.entry_number, p.name), document.getElementById('pokeSearch').value)}</span>
@@ -1247,6 +1788,177 @@ function getPokeLocalName(num, name) {
   return name; // fallback to canonical (EN) name
 }
 
+
+// ─── CUSTOM POKÉDEX SYSTEM ────────────────────────────────────────────────────
+// A "pokédex" here is a named ordered list of {entry_number, name} objects.
+// Built-in: National + Gen I–IX. User can import custom ones.
+
+var CUSTOM_POKEDEXES = {}; // {id: {name, entries: [{entry_number, name}]}}
+var ACTIVE_DEX_ID = '0';   // '0'=National, '1'-'9'=Gen, 'custom_xxx'=imported
+
+function loadCustomDexes() {
+  try { CUSTOM_POKEDEXES = JSON.parse(localStorage.getItem('pb_custom_dexes') || '{}'); } catch(e) { CUSTOM_POKEDEXES = {}; }
+  try { ACTIVE_DEX_ID = localStorage.getItem('pb_active_dex') || '0'; } catch(e) { ACTIVE_DEX_ID = '0'; }
+}
+
+function saveCustomDexes() {
+  localStorage.setItem('pb_custom_dexes', JSON.stringify(CUSTOM_POKEDEXES));
+}
+
+function setActiveDex(id) {
+  ACTIVE_DEX_ID = id;
+  localStorage.setItem('pb_active_dex', id);
+  // Sync both selects
+  var gf = document.getElementById('genFilter');
+  var bgf = document.getElementById('binderGenFilter');
+  if (gf) gf.value = id;
+  if (bgf) bgf.value = id;
+  renderList();
+  renderStats();
+  if (document.getElementById('binderOverlay').style.display === 'flex') {
+    binderSpread = 0;
+    renderBinderSpread();
+    renderBinderList();
+  }
+}
+
+function onGenChange() {
+  var val = document.getElementById('genFilter').value;
+  setActiveDex(val);
+}
+
+function onBinderGenChange() {
+  var val = document.getElementById('binderGenFilter').value;
+  setActiveDex(val);
+}
+
+// Returns the active Pokédex entries as [{entry_number, name}]
+function getActiveDexEntries() {
+  var id = ACTIVE_DEX_ID;
+  // Custom imported
+  if (CUSTOM_POKEDEXES[id]) return CUSTOM_POKEDEXES[id].entries;
+  // Gen filter
+  var gen = parseInt(id);
+  if (gen >= 1 && gen <= 9) {
+    var range = GEN_RANGES[gen];
+    if (!range) return POKEDEX;
+    return POKEDEX.filter(function(p) { return p.entry_number >= range[0] && p.entry_number <= range[1]; });
+  }
+  // National (0)
+  return POKEDEX;
+}
+
+// Get local slot index within the active dex (1-based position in the dex list)
+// Returns {page, spot, spotLabel, dexPos} where dexPos is 1-based index in activeDex
+function calcPositionInDex(dexNum) {
+  var entries = getActiveDexEntries();
+  var dexPos = -1;
+  for (var i = 0; i < entries.length; i++) {
+    if (entries[i].entry_number === dexNum) { dexPos = i + 1; break; }
+  }
+  if (dexPos < 0) return calcPosition(dexNum); // fallback to national
+  var page = Math.ceil(dexPos / 9);
+  var spot = ((dexPos - 1) % 9) + 1;
+  var labels = ['Canto superior esquerdo','Topo centro','Canto superior direito',
+    'Centro esquerdo','Centro','Centro direito',
+    'Canto inferior esquerdo','Base centro','Canto inferior direito'];
+  return { page: page, spot: spot, spotLabel: labels[spot-1], dexPos: dexPos };
+}
+
+// Rebuild gen filter selects with custom dexes
+function rebuildGenSelects() {
+  var selects = ['genFilter', 'binderGenFilter'];
+  var romNums = ['I','II','III','IV','V','VI','VII','VIII','IX'];
+  selects.forEach(function(selId) {
+    var sel = document.getElementById(selId);
+    if (!sel) return;
+    var current = sel.value || ACTIVE_DEX_ID;
+    sel.innerHTML = '';
+    // National
+    var opt0 = document.createElement('option');
+    opt0.value = '0'; opt0.textContent = t('gen.national');
+    sel.appendChild(opt0);
+    // Gen I-IX
+    for (var i = 1; i <= 9; i++) {
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = t('gen.label') + ' ' + romNums[i-1];
+      sel.appendChild(opt);
+    }
+    // Custom dexes
+    Object.keys(CUSTOM_POKEDEXES).forEach(function(id) {
+      var opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = '📂 ' + CUSTOM_POKEDEXES[id].name;
+      sel.appendChild(opt);
+    });
+    sel.value = current;
+  });
+}
+
+// Pokédex import
+function triggerPokedexImport() {
+  document.getElementById('pokedexImportInput').click();
+}
+
+function importPokedexFile(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var data = JSON.parse(ev.target.result);
+      var entries = [];
+      if (data.pokemon_entries) {
+        entries = data.pokemon_entries.map(function(pe) {
+          return { entry_number: pe.entry_number, name: pe.pokemon_species.name };
+        });
+      } else if (Array.isArray(data)) {
+        entries = data.map(function(pe) {
+          return { entry_number: pe.entry_number || pe.entry_number, name: pe.name || (pe.pokemon_species && pe.pokemon_species.name) };
+        }).filter(function(e) { return e.entry_number && e.name; });
+      }
+      if (!entries.length) { toast(t('toast.invalid'), 'error'); return; }
+
+      // Merge into POKEDEX for autocomplete
+      mergePokedex(data);
+      localStorage.setItem('pb_pokedex', ev.target.result);
+
+      // Ask for a name
+      showPokedexNameModal(entries);
+    } catch(err) { toast(t('toast.invalid'), 'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function showPokedexNameModal(entries) {
+  var modal = document.getElementById('pokedexNameModal');
+  document.getElementById('pokedexNameInput').value = '';
+  document.getElementById('pokedexEntryCount').textContent = entries.length + ' Pokémon';
+  modal.classList.add('open');
+  modal._pendingEntries = entries;
+  setTimeout(function() { document.getElementById('pokedexNameInput').focus(); }, 100);
+}
+
+function saveCustomPokedex() {
+  var modal = document.getElementById('pokedexNameModal');
+  var name = document.getElementById('pokedexNameInput').value.trim();
+  if (!name) { document.getElementById('pokedexNameInput').focus(); return; }
+  var entries = modal._pendingEntries;
+  var id = 'custom_' + Date.now();
+  CUSTOM_POKEDEXES[id] = { name: name, entries: entries };
+  saveCustomDexes();
+  closePokedexNameModal();
+  rebuildGenSelects();
+  setActiveDex(id);
+  toast('📂 ' + name + ' — ' + entries.length + ' Pokémon ' + t('toast.imported'), 'success');
+}
+
+function closePokedexNameModal() {
+  document.getElementById('pokedexNameModal').classList.remove('open');
+}
+
 // ─── GENERATION RANGES ───────────────────────────────────────────────────────
 var GEN_RANGES = [
   null,           // 0 = National (all)
@@ -1287,8 +1999,8 @@ function renderList() {
     // Only owned
     entries = Object.values(collection).sort((a,b) => a.number - b.number);
   } else if (filterMode === 'missing') {
-    // All POKEDEX entries not in collection
-    entries = POKEDEX
+    // Active dex entries not in collection
+    entries = getActiveDexEntries()
       .filter(p => !collection[p.entry_number])
       .map(p => ({number: p.entry_number, name: p.name, missing: true, ...calcPosition(p.entry_number)}))
       .sort((a,b) => a.number - b.number);
@@ -1302,9 +2014,11 @@ function renderList() {
       .sort((a,b) => a.number - b.number);
   }
 
-  // Apply generation filter
-  const genRange = getGenRange('genFilter');
-  entries = filterByGen(entries, genRange);
+  // Apply active dex filter (gen or custom)
+  var activeDexNums = new Set(getActiveDexEntries().map(function(p) { return p.entry_number; }));
+  if (ACTIVE_DEX_ID !== '0') {
+    entries = entries.filter(e => activeDexNums.has(e.number));
+  }
 
   if (q) {
     const num = parseInt(q);
@@ -1559,7 +2273,7 @@ function renderBinderList() {
   if (binderFilterMode === 'have') {
     // already only owned — entries is correct
   } else if (binderFilterMode === 'missing') {
-    entries = POKEDEX
+    entries = getActiveDexEntries()
       .filter(function(p) { return !collection[p.entry_number]; })
       .map(function(p) {
         var pos = calcPosition(p.entry_number);
@@ -1567,8 +2281,8 @@ function renderBinderList() {
       })
       .sort(function(a,b) { return a.number - b.number; });
   } else {
-    // All: full POKEDEX merged with collection
-    entries = POKEDEX
+    // All: active dex merged with collection
+    entries = getActiveDexEntries()
       .map(function(p) {
         if (collection[p.entry_number]) return collection[p.entry_number];
         var pos = calcPosition(p.entry_number);
@@ -1577,9 +2291,11 @@ function renderBinderList() {
       .sort(function(a,b) { return a.number - b.number; });
   }
 
-  // Apply generation filter
-  var genRange = getGenRange('binderGenFilter');
-  entries = filterByGen(entries, genRange);
+  // Apply active dex filter
+  var activeDexNumsB = new Set(getActiveDexEntries().map(function(p) { return p.entry_number; }));
+  if (ACTIVE_DEX_ID !== '0') {
+    entries = entries.filter(function(e) { return activeDexNumsB.has(e.number); });
+  }
 
   if (q) {
     var num = parseInt(q);
@@ -1638,25 +2354,10 @@ function toggleBinderMode() {
 }
 
 function maxBinderSpread() {
-  // Find the highest dex number that is either owned or exists in POKEDEX,
-  // but cap to the range that makes sense: up to the last page that contains
-  // any Pokémon known by the Pokédex, as long as we have at least one owned Pokémon.
-  var ownedNums = Object.keys(collection).map(Number);
-  if (!ownedNums.length) return 0;
-  var maxOwned = Math.max.apply(null, ownedNums);
-  // Extend to the end of the page that contains maxOwned,
-  // then one more spread to catch any partial page immediately after
-  var maxPage = Math.ceil(maxOwned / 9);
-  // If maxOwned is not the last slot of its page, the page is partial — already included
-  // Add one extra spread so the page immediately following is also reachable
-  // (catches the case where the last owned is e.g. slot 9 of page 112,
-  //  and page 113 has POKEDEX entries we want to show as "missing")
-  var extraPage = maxPage + 2; // show up to 2 pages beyond last owned
-  // But cap at the last page that has any POKEDEX entry
-  var maxDexNum = POKEDEX.length ? Math.max.apply(null, POKEDEX.map(function(p) { return p.entry_number; })) : maxOwned;
-  var maxDexPage = Math.ceil(maxDexNum / 9);
-  var finalPage = Math.min(extraPage, maxDexPage);
-  return Math.ceil((finalPage - 1) / 2);
+  var activeDex = getActiveDexEntries();
+  if (!activeDex.length) return 0;
+  var totalPages = Math.ceil(activeDex.length / 9);
+  return Math.ceil((totalPages - 1) / 2);
 }
 
 function binderNext() {
@@ -1668,14 +2369,9 @@ function binderPrev() {
 }
 
 function pageHasAnyPokemon(pageNum) {
-  // Returns true if the page has at least one Pokémon entry in POKEDEX or collection
-  var minDex = (pageNum - 1) * 9 + 1;
-  var maxDex = pageNum * 9;
-  for (var n = minDex; n <= maxDex; n++) {
-    if (collection[n]) return true;
-    if (POKEDEX.find(function(p) { return p.entry_number === n; })) return true;
-  }
-  return false;
+  var activeDex = getActiveDexEntries();
+  var startIdx = (pageNum - 1) * 9;
+  return startIdx < activeDex.length;
 }
 
 function renderBinderSpread() {
@@ -1738,20 +2434,22 @@ function buildBinderPage(pageNum) {
   var now = Date.now();
   var ONE_DAY = 86400000;
 
+  var activeDex = getActiveDexEntries();
   for (var slot = 1; slot <= 9; slot++) {
-    var dexNum = (pageNum - 1) * 9 + slot;
-    var owned = collection[dexNum];
-    var pokeEntry = POKEDEX.find(function(p) { return p.entry_number === dexNum; });
+    var dexIdx = (pageNum - 1) * 9 + slot - 1;
+    var pokeEntry = activeDex[dexIdx] || null;
+    var dexNum = pokeEntry ? pokeEntry.entry_number : null;
+    var owned = dexNum ? collection[dexNum] : null;
     var name = owned ? owned.name : (pokeEntry ? pokeEntry.name : null);
 
     var cell = document.createElement('div');
     cell.className = 'binder-slot';
 
-    if (!name) {
+    if (!pokeEntry) {
       cell.classList.add('empty');
       cell.innerHTML = '<span class="slot-num">' + slot + '</span>' +
         '<div style="width:52px;height:52px;margin-top:6px;"></div>' +
-        '<span class="slot-dex">#' + dexNum + '</span>' +
+        '<span class="slot-dex"></span>' +
         '<span class="slot-name">—</span>';
     } else {
       var isRecent = owned && owned._addedAt && (now - owned._addedAt) < ONE_DAY;
@@ -1846,6 +2544,27 @@ var T = {
     'toast.jsononly': 'Apenas ficheiros .json',
     'toast.nobackup': 'Nenhum backup encontrado.',
     'toast.copyfail': 'Falha ao copiar.',
+    'footer.about': 'Ferramenta gratuita para colecionadores de Pokémon TCG. Encontra qualquer carta no teu binder em segundos.',
+    'footer.dev': 'Desenvolvedor',
+    'footer.contact': 'Sugestões? Bugs? Abre uma issue no GitHub ou envia mensagem direta.',
+    'footer.how': 'Como funciona',
+    'footer.how.local': '💾 Dados guardados localmente no browser',
+    'footer.how.offline': '📴 Funciona sem internet após carregamento',
+    'footer.how.export': '📤 Exporta JSON regularmente para não perderes',
+    'footer.how.pokedex': '📥 Importa Pokédex personalizadas com nome próprio',
+    'footer.how.calc': '📐 Fórmula: Página = ceil(n/9) · Slot = ((n-1)%9)+1',
+    'footer.support': 'Apoiar',
+    'footer.support.desc': 'Esta ferramenta é gratuita e sem anúncios. Se te poupar tempo, considera apoiar o desenvolvimento.',
+    'footer.kofi': 'Apoiar no Ko-fi',
+    'footer.source': 'Código fonte',
+    'footer.disclaimer': 'Não afiliado com The Pokémon Company, Nintendo ou Game Freak. Pokémon é marca registada dos respetivos proprietários.',
+    'footer.github': 'GitHub',
+'pokedex.modal.title': 'Nome da Pokédex',
+    'pokedex.modal.sub': 'Dá um nome a esta Pokédex para a encontrar facilmente.',
+    'pokedex.modal.save': '✅ Guardar',
+    'pokedex.modal.cancel': 'Cancelar',
+    'pokedexImportBtn': '📥 Importar Pokédex',
+
     'toast.nosel': 'Nenhum Pokémon selecionado.',
     'confirm.overwrite.title': 'Substituir entrada?',
     'confirm.overwrite.msg': 'já existe na coleção. Deseja substituir?',
@@ -1889,6 +2608,13 @@ var T = {
         <li>Importa um ficheiro de coleção exportado anteriormente (os dados são <strong>fundidos</strong>, não substituídos)</li>
         <li>Também podes importar o ficheiro da Pokédex completa (formato <code>pokemon_entries</code>) para melhorar o autocomplete</li>
         <li>Podes arrastar e largar ficheiros JSON diretamente na zona de importação</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📥 Importar Pokédex</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>Usa o botão <strong>Importar Pokédex</strong> no cabeçalho</li>
+        <li>Suporta o formato <code>pokemon_entries</code> da PokéAPI ou array simples</li>
+        <li>Dá-lhe um nome (ex: "Hoenn Regional") — fica guardada e aparece no filtro de geração</li>
+        <li>Ao selecionar uma Pokédex, o binder reflete automaticamente — o slot 1 da página 1 é o primeiro Pokémon dessa Pokédex</li>
       </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📖 My Binder</h4>
       <p>Visualização em modo binder, com abertura de duas páginas. Navega com os botões ou com as teclas ◀▶ do teclado. Pokémon que tens aparecem com cor normal; os que faltam aparecem a 20% de opacidade.</p>
@@ -1960,6 +2686,27 @@ var T = {
     'toast.jsononly': '.json files only',
     'toast.nobackup': 'No backup found.',
     'toast.copyfail': 'Copy failed.',
+    'footer.about': "Free tool for Pokémon TCG collectors. Find any card's exact page and slot in seconds.",
+    'footer.dev': 'Developer',
+    'footer.contact': 'Suggestions? Bugs? Open an issue on GitHub or send a direct message.',
+    'footer.how': 'How it works',
+    'footer.how.local': '💾 Data saved locally in your browser',
+    'footer.how.offline': '📴 Works offline after first load',
+    'footer.how.export': '📤 Export JSON regularly to keep your data safe',
+    'footer.how.pokedex': '📥 Import custom Pokédexes with a custom name',
+    'footer.how.calc': '📐 Formula: Page = ceil(n/9) · Slot = ((n-1)%9)+1',
+    'footer.support': 'Support',
+    'footer.support.desc': 'This tool is free and ad-free. If it saves you time, consider supporting development.',
+    'footer.kofi': 'Support on Ko-fi',
+    'footer.source': 'Source code',
+    'footer.disclaimer': 'Not affiliated with The Pokémon Company, Nintendo or Game Freak. Pokémon is a trademark of its respective owners.',
+    'footer.github': 'GitHub',
+'pokedex.modal.title': 'Pokédex Name',
+    'pokedex.modal.sub': 'Give this Pokédex a name to find it easily.',
+    'pokedex.modal.save': '✅ Save',
+    'pokedex.modal.cancel': 'Cancel',
+    'pokedexImportBtn': '📥 Import Pokédex',
+
     'toast.nosel': 'No Pokémon selected.',
     'confirm.overwrite.title': 'Replace entry?',
     'confirm.overwrite.msg': 'already in collection. Replace?',
@@ -2000,6 +2747,13 @@ var T = {
         <li>Import a previously exported file (data is <strong>merged</strong>, not replaced)</li>
         <li>You can also import a full Pokédex file (<code>pokemon_entries</code> format) to improve autocomplete</li>
         <li>Drag and drop JSON files directly onto the import zone</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📥 Import Pokédex</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>Use the <strong>Import Pokédex</strong> button in the header</li>
+        <li>Supports <code>pokemon_entries</code> format from PokéAPI or a simple array</li>
+        <li>Give it a name (e.g. "Hoenn Regional") — it's saved and appears in the generation filter</li>
+        <li>Selecting a Pokédex updates the binder automatically — slot 1 of page 1 is the first Pokémon of that Pokédex</li>
       </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📖 My Binder</h4>
       <p>Visual binder mode with two-page spread. Navigate with buttons or ◀▶ keyboard keys. Pokémon you have appear in full colour; missing ones appear at 20% opacity.</p>
@@ -2071,6 +2825,27 @@ var T = {
     'toast.jsononly': '.jsonファイルのみ対応',
     'toast.nobackup': 'バックアップが見つかりません。',
     'toast.copyfail': 'コピーに失敗しました。',
+    'footer.about': 'ポケモンTCGコレクター向け無料ツール。バインダーの正確なページとスロットを瞬時に検索。',
+    'footer.dev': '開発者',
+    'footer.contact': 'ご意見・バグ報告はGitHubのIssueまたはDMでどうぞ。',
+    'footer.how': '使い方',
+    'footer.how.local': '💾 データはブラウザのローカルに保存',
+    'footer.how.offline': '📴 初回読み込み後はオフラインで動作',
+    'footer.how.export': '📤 定期的にJSONをエクスポートしてバックアップを',
+    'footer.how.pokedex': '📥 カスタム図鑑を名前付きでインポート可能',
+    'footer.how.calc': '📐 計算式: ページ = ceil(n/9) · スロット = ((n-1)%9)+1',
+    'footer.support': 'サポート',
+    'footer.support.desc': '無料・広告なし。役に立ったらコーヒー1杯のご支援を！',
+    'footer.kofi': 'Ko-fiでサポート',
+    'footer.source': 'ソースコード',
+    'footer.disclaimer': 'The Pokémon Company、任天堂、ゲームフリークとは無関係です。ポケモンはそれぞれの権利者の登録商標です。',
+    'footer.github': 'GitHub',
+
+    'pokedex.modal.title': '図鑑の名前',
+    'pokedex.modal.sub': 'この図鑑に名前をつけてください。',
+    'pokedex.modal.save': '✅ 保存',
+    'pokedex.modal.cancel': 'キャンセル',
+    'pokedexImportBtn': '📥 図鑑インポート',
     'toast.nosel': 'ポケモンが選択されていません。',
     'confirm.overwrite.title': 'エントリを上書き？',
     'confirm.overwrite.msg': 'はすでにコレクションにあります。上書きしますか？',
@@ -2113,6 +2888,13 @@ var T = {
         <li>ポケモン図鑑ファイル（<code>pokemon_entries</code>形式）もインポート可</li>
         <li>JSONファイルをドラッグ＆ドロップも対応</li>
       </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📥 図鑑インポート</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>ヘッダーの<strong>図鑑インポート</strong>ボタンを使用</li>
+        <li>PokéAPIの<code>pokemon_entries</code>形式または単純な配列に対応</li>
+        <li>名前を付けてください（例：「ホウエン地方図鑑」）― 保存され世代フィルターに表示されます</li>
+        <li>図鑑を選択するとバインダーが自動更新 ― 1ページ目スロット1がその図鑑の最初のポケモンになります</li>
+      </ul>
       <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📖 マイバインダー</h4>
       <p>見開き表示でバインダーを確認。ボタンまたは◀▶キーでナビゲート。持っているポケモンは通常表示、未取得は20%の透明度で表示されます。</p>
     `
@@ -2127,6 +2909,7 @@ function setLang(lang) {
   LANG = lang;
   localStorage.setItem('pb_lang', lang);
   applyLang();
+  rebuildGenSelects();
   renderList();
   renderStats();
   if (document.getElementById('binderOverlay').style.display === 'flex') {
@@ -2198,8 +2981,7 @@ function applyLang() {
   });
 
   // Gen selects
-  updateGenOptions('genFilter');
-  updateGenOptions('binderGenFilter');
+  rebuildGenSelects();
 
   // Confirm modal buttons
   safeText('confirmCancelBtn', t('confirm.cancel'));
@@ -2222,6 +3004,29 @@ function applyLang() {
   safeText('binderNextBtn', t('binder.next'));
   safeText('binderCloseBtn', t('binder.close'));
   safeText('binderCollectionTitle', t('binder.collection'));
+
+  // Footer
+  safeText('footerAbout', t('footer.about'));
+  safeText('footerHowPokedex', t('footer.how.pokedex'));
+  safeText('footerHowCalc', t('footer.how.calc'));
+  safeText('footerDevTitle', t('footer.dev'));
+  safeText('footerContact', t('footer.contact'));
+  safeText('footerHowTitle', t('footer.how'));
+  safeText('footerHowLocal', t('footer.how.local'));
+  safeText('footerHowOffline', t('footer.how.offline'));
+  safeText('footerHowExport', t('footer.how.export'));
+  safeText('footerSupportTitle', t('footer.support'));
+  safeText('footerSupportDesc', t('footer.support.desc'));
+  safeText('footerKofiBtnLabel', t('footer.kofi'));
+  safeText('footerSourceLink', t('footer.source'));
+  safeText('footerDisclaimer', t('footer.disclaimer'));
+  safeText('footerGithubLabel', t('footer.github'));
+  // Banner
+  safeText('bannerTitle', t('banner.title'));
+  safeText('bannerSub', t('banner.sub'));
+
+  // Pokedex import btn
+  safeText('pokedexImportBtn', t('pokedexImportBtn') || '📥 Importar Pokédex');
 
   // Support banner
   safeText('bannerTitle', t('banner.title'));
@@ -2281,6 +3086,5 @@ document.addEventListener('click', e => {
   if (!document.getElementById('searchWrap').contains(e.target)) closeAC();
 });
 
-document.addEventListener('DOMContentLoaded', function() { init(); });
-</script>
+document.addEventListener('DOMContentLoaded', function() { init(); });</script>
 

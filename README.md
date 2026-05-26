@@ -22,6 +22,7 @@ A free, lightweight tool for Pokémon TCG collectors. No account needed, no inte
 - **Collection filters** — view All / Have / Missing across the full Pokédex
 - **Statistics** — complete pages, complete generations, missing ranges
 - **Import / Export JSON** — back up and restore your collection
+- **Custom Pokédex import** — import any Pokédex (regional, fan-made, set-based) as a named JSON file; it appears in the generation filter and the binder reflects its order automatically
 - **Drag & drop import** — drop a `.json` file directly onto the page
 - **Auto-backup** — automatic backup saved to localStorage with one-click restore
 - **Light/Dark theme** — toggle in the header, persisted between sessions
@@ -71,7 +72,13 @@ Or visit the live version at: **[your-url-here]**
 
 ---
 
-## 📂 Importing your Pokédex
+## 📂 Importing a custom Pokédex
+
+Use the **Import Pokédex** button in the header to load any named Pokédex. After selecting the file, you'll be prompted to give it a name (e.g. "Hoenn Regional", "Set SV01"). It will be saved permanently and appear alongside National and Gen I–IX in the generation filter.
+
+When a custom Pokédex is active, the binder reorders automatically — slot 1 of page 1 becomes the first Pokémon of that Pokédex, regardless of its National Pokédex number.
+
+## 📂 Importing the National Pokédex (for autocomplete)
 
 To improve autocomplete with the full Pokédex (all 1025 Pokémon), import a JSON file in this format:
 
@@ -92,7 +99,7 @@ This data is available from the [PokéAPI](https://pokeapi.co/api/v2/pokedex/1/)
 
 This tool is free and will always be free. If it saves you time hunting through your binder, consider buying me a coffee:
 
-**[ko-fi.com/YOUR_KOFI](https://ko-fi.com/djandrevilela)**
+**[ko-fi.com/YOUR_KOFI](https://ko-fi.com/YOUR_KOFI)**
 
 ---
 
