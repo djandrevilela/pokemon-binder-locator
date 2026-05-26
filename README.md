@@ -57,9 +57,10 @@ Example: Pikachu (#25) → Page 3, Slot 7 (bottom-left)
 
 ## 🚀 Getting started
 
-Download `index.html` and open it in any modern browser. That's it — no server, no install, no build step.
+Vvisit the live version at: **[Pokémon Binder Locator](https://djandrevilela.github.io/pokemon-binder-locator)**
 
-Or visit the live version at: **[your-url-here]**
+Or download `index.html` and open it in any modern browser. That's it — no server, no install, no build step.
+
 
 ---
 
@@ -99,7 +100,7 @@ This data is available from the [PokéAPI](https://pokeapi.co/api/v2/pokedex/1/)
 
 This tool is free and will always be free. If it saves you time hunting through your binder, consider buying me a coffee:
 
-**[ko-fi.com/YOUR_KOFI](https://ko-fi.com/YOUR_KOFI)**
+**[ko-fi.com/djandrevilela](https://ko-fi.com/djandrevilela)**
 
 ---
 
