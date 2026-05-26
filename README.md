@@ -92,7 +92,7 @@ This data is available from the [PokéAPI](https://pokeapi.co/api/v2/pokedex/1/)
 
 This tool is free and will always be free. If it saves you time hunting through your binder, consider buying me a coffee:
 
-**[ko-fi.com/YOUR_KOFI](https://ko-fi.com/YOUR_KOFI)**
+**[ko-fi.com/YOUR_KOFI](https://ko-fi.com/djandrevilela)**
 
 ---
 
