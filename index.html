@@ -1,0 +1,2286 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Binder Locator</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --text: #e8eaf6;
+    --text-muted: #8890b0;
+    --success: #4caf7d;
+    --warning: #ffb347;
+    --danger: #ff6b6b;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  .light-mode {
+    --bg: #f0f2ff;
+    --surface: #ffffff;
+    --surface2: #e8eaf6;
+    --border: #c5cae9;
+    --text: #1a1d27;
+    --text-muted: #5c6080;
+    --shadow: 0 4px 24px rgba(0,0,0,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .header-row-top {
+    justify-content: space-between;
+  }
+  .header-row-btns {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .header-controls-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+  @media (max-width: 480px) {
+    .header-controls-top { flex-wrap: wrap; }
+  }
+  header h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+  header h1 span.logo { font-size: 1.3rem; }
+  .toggle-label { font-size: 0.78rem; white-space: nowrap; }
+  .lang-select {
+    appearance: none;
+    margin-bottom: 0 !important;
+    cursor: pointer;
+    min-width: 0;
+    max-width: 140px;
+  }
+  .header-row-btns .btn { font-size: 0.78rem; padding: 7px 11px; }
+  @media (max-width: 600px) {
+    header { padding: 8px 12px; }
+    header h1 { font-size: 0.95rem; }
+    .header-row-btns .btn { font-size: 0.72rem; padding: 6px 8px; }
+    .lang-select { max-width: 110px; font-size: 0.74rem; }
+    .toggle-label { font-size: 0.72rem; }
+  }
+  .btn {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { opacity: 0.85; }
+  .btn.danger:hover { background: var(--danger); border-color: var(--danger); }
+  .btn.success:hover { background: var(--success); border-color: var(--success); }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+  input[type=text], input[type=number], select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: border-color 0.15s;
+    margin-bottom: 12px;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .search-wrap { position: relative; }
+  .search-wrap input { margin-bottom: 0; }
+  #autocomplete-box {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    z-index: 200;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+    display: none;
+  }
+  #autocomplete-box.open { display: block; }
+  .ac-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    transition: background 0.1s;
+  }
+  .ac-item:hover, .ac-item.active { background: var(--surface2); }
+  .ac-item img { width: 32px; height: 32px; object-fit: contain; }
+  .ac-num { font-size: 0.75rem; color: var(--text-muted); min-width: 36px; }
+  .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .form-row > * { flex: 1; min-width: 120px; }
+  .result-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    display: none;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .result-box.visible { display: flex; }
+  .result-info { flex: 1; }
+  .result-info .result-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; text-transform: capitalize; }
+  .result-info .result-detail { font-size: 0.85rem; color: var(--text-muted); line-height: 1.8; }
+  .result-info .result-detail strong { color: var(--text); }
+  .result-img { width: 72px; height: 72px; object-fit: contain; border-radius: 8px; background: var(--surface); padding: 4px; }
+  .binder-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-top: 10px;
+  }
+  .binder-cell {
+    aspect-ratio: 0.72;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .binder-cell.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(108,99,255,0.5);
+    transform: scale(1.08);
+  }
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-chip .val { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .stat-chip .lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+  .search-filter-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .search-filter-bar input { flex: 1; min-width: 160px; margin-bottom: 0; }
+  .filter-tabs { display: flex; gap: 6px; }
+  .filter-tab {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+  .filter-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .entries-list { display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 4px; }
+  .entries-list::-webkit-scrollbar { width: 5px; }
+  .entries-list::-webkit-scrollbar-track { background: transparent; }
+  .entries-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .entry-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.15s;
+  }
+  .entry-card:hover { border-color: var(--accent); }
+  .entry-card .num { font-size: 0.75rem; color: var(--text-muted); min-width: 34px; font-weight: 600; }
+  .entry-card .name { font-size: 0.92rem; font-weight: 600; text-transform: capitalize; flex: 1; }
+  .entry-card .loc { font-size: 0.75rem; color: var(--text-muted); }
+  .entry-card .actions { display: flex; gap: 6px; margin-left: auto; }
+  .entry-card .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    transition: color 0.15s, background 0.15s;
+  }
+  .entry-card .icon-btn:hover { color: var(--text); background: var(--border); }
+  .entry-card .icon-btn.copy:hover { color: var(--success); }
+  .entry-card .icon-btn.del:hover { color: var(--danger); }
+  .entry-mini-img { width: 36px; height: 36px; object-fit: contain; }
+  .sheet-badge {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: 600;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .sheet-badge.front { color: var(--success); border-color: var(--success); }
+  .sheet-badge.back { color: var(--warning); border-color: var(--warning); }
+  .mode-toggle { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-muted); }
+  .toggle-sw {
+    position: relative;
+    width: 36px; height: 20px;
+    display: inline-block;
+  }
+  .toggle-sw input { opacity: 0; width: 0; height: 0; }
+  .toggle-sw .slider {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    transition: 0.2s;
+  }
+  .toggle-sw .slider:before {
+    position: absolute;
+    content: '';
+    height: 14px; width: 14px;
+    left: 2px; bottom: 2px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .toggle-sw input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+  .toggle-sw input:checked + .slider:before { transform: translateX(16px); background: #fff; }
+  .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    box-shadow: var(--shadow);
+    animation: slideIn 0.2s ease;
+    max-width: 300px;
+  }
+  .toast.success { border-color: var(--success); color: var(--success); }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+  .toast.warn { border-color: var(--warning); color: var(--warning); }
+  @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: var(--shadow);
+  }
+  .modal h3 { margin-bottom: 12px; font-size: 1rem; }
+  .modal p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.6; }
+  .modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.9rem; }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-top: 10px;
+  }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(108,99,255,0.07); }
+  .missing-ranges { font-size: 0.8rem; color: var(--text-muted); line-height: 1.8; }
+  .missing-ranges span { background: var(--surface2); border-radius: 4px; padding: 1px 6px; margin: 2px; display: inline-block; }
+  kbd {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: var(--text-muted);
+  }
+  .shortcut-hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+  .has-pokemon { border-color: var(--success) !important; }
+  .entry-card .poke-sprite { width: 36px; height: 36px; image-rendering: pixelated; }
+  select { appearance: none; }
+  .section-gap { margin-top: 24px; }
+
+  /* BINDER MODE */
+  .binder-page {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    flex: 1;
+    min-width: 280px;
+    max-width: 420px;
+  }
+  .binder-page-title {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .binder-page-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .binder-slot {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 6px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: var(--surface2);
+    min-height: 110px;
+    transition: border-color 0.15s, opacity 0.15s;
+    position: relative;
+  }
+  .binder-slot.owned { border-color: var(--accent); opacity: 1; }
+  .binder-slot.missing { opacity: 0.22; }
+  .binder-slot.empty { opacity: 0.08; }
+  .binder-slot.recent-add { }
+  .binder-slot .slot-num {
+    position: absolute;
+    top: 5px; left: 7px;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .binder-slot img {
+    width: 52px; height: 52px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    margin-top: 6px;
+  }
+  .binder-slot .slot-dex {
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .binder-slot .slot-name {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-align: center;
+    text-transform: capitalize;
+    line-height: 1.2;
+  }
+  .binder-slot.recent-add .slot-name { font-weight: 800; color: var(--accent); }
+  .binder-slot.empty .slot-name { color: var(--text-muted); font-size: 0.65rem; }
+  @media (max-width: 640px) {
+    .binder-slot { min-height: 90px; }
+    .binder-slot img { width: 40px; height: 40px; }
+    .binder-page { padding: 10px; }
+  }
+  @media (max-width: 480px) {
+    header { padding: 12px 14px; }
+    header h1 { font-size: 1.1rem; }
+    .container { padding: 14px 10px; }
+    .card { padding: 14px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row header-row-top">
+    <h1><span class="logo">📘</span> Pokémon Binder Locator</h1>
+    <div class="header-controls-top">
+      <div class="mode-toggle">
+        <span>☀️</span>
+        <label class="toggle-sw" title="Alternar tema claro/escuro">
+          <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+          <span class="slider"></span>
+        </label>
+        <span>🌙</span>
+      </div>
+      <div class="mode-toggle">
+        <span class="toggle-label" id="sheetModeLabel">Frente/Verso</span>
+        <label class="toggle-sw" title="Modo frente/verso de folha">
+          <input type="checkbox" id="sheetModeToggle" onchange="renderList();renderStats()">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <select id="langSelect" onchange="setLang(this.value)" aria-label="Idioma" class="btn lang-select">
+        <option value="pt">🌐 Português</option>
+        <option value="en">🌐 English</option>
+        <option value="jp">🌐 日本語</option>
+      </select>
+    </div>
+  </div>
+  <div class="header-row header-row-btns">
+    <button class="btn primary" id="binderModeBtn" onclick="toggleBinderMode()">📖 My Binder</button>
+    <button class="btn" onclick="exportJSON()" id="exportBtn">⬇ Exportar</button>
+    <button class="btn" onclick="triggerImport()" id="importBtn">⬆ Importar</button>
+    <button class="btn" onclick="restoreBackup()" id="backupBtn">↩ Backup</button>
+    <button class="btn danger" onclick="confirmClearAll()" id="clearBtn">🗑 Limpar</button>
+    <button class="btn" onclick="openHelp()" id="helpBtn">❓ Como funciona</button>
+    <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+</header>
+
+<div class="container">
+  <div class="grid-2">
+    <!-- LEFT: Add form -->
+    <div>
+      <div class="card">
+        <h2 id="addCardTitle">🔍 Adicionar Pokémon</h2>
+        <label for="pokeSearch" id="addLabel">Nome ou número <kbd>Enter</kbd> para guardar</label>
+        <div class="search-wrap" id="searchWrap">
+          <input type="text" id="pokeSearch" placeholder="Ex: pikachu, pika, 25..." autocomplete="off"
+            oninput="onSearchInput()" onkeydown="onSearchKey(event)" aria-label="Nome ou número do Pokémon" aria-autocomplete="list" aria-controls="autocomplete-box">
+          <div id="autocomplete-box" role="listbox"></div>
+        </div>
+        <div class="shortcut-hint" id="searchHint">Pesquisa parcial suportada · <kbd>↑↓</kbd> navegar · <kbd>Esc</kbd> limpar · <kbd>Ctrl+F</kbd> focar</div>
+
+        <div id="resultBox" class="result-box" role="region" aria-live="polite">
+          <div class="result-info">
+            <div class="result-name" id="rName">—</div>
+            <div class="result-detail" id="rDetail">—</div>
+            <div class="binder-grid" id="binderPreview" aria-label="Pré-visualização da grelha do binder"></div>
+          </div>
+          <img id="rImg" class="result-img" src="" alt="" style="display:none">
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" onclick="saveEntry()" id="saveBtnLabel" style="flex:1">✅ Guardar</button>
+          <button class="btn" onclick="clearInputs()" id="clearBtnLabel">✕ Limpar</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card section-gap">
+        <h2 id="statsCardTitle">📊 Estatísticas</h2>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-chip"><div class="val" id="statTotal">0</div><div class="lbl" id="lbl-total">Total guardados</div></div>
+          <div class="stat-chip"><div class="val" id="statPages">0</div><div class="lbl" id="lbl-pages">Páginas ocupadas</div></div>
+          <div class="stat-chip"><div class="val" id="statMax">—</div><div class="lbl" id="statMaxLbl">Págs. completas</div></div>
+          <div class="stat-chip"><div class="val" id="statGens">—</div><div class="lbl" id="lbl-gens">Gens. completas</div></div>
+        </div>
+        <div style="margin-top:14px">
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px" id="missingLabel">Intervalos em falta (primeiros 50)</div>
+          <div class="missing-ranges" id="missingRanges">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: List -->
+    <div>
+      <div class="card" style="height:100%">
+        <h2 id="listCardTitle">📋 Coleção</h2>
+        <div class="search-filter-bar">
+          <input type="text" id="filterInput" placeholder="🔎  Filtrar coleção..." oninput="renderList()" aria-label="Filtrar coleção">
+          <div class="filter-tabs">
+            <button class="filter-tab" onclick="setFilter('all',this)" title="Todos" data-filter="all">Todos</button>
+            <button class="filter-tab active" onclick="setFilter('have',this)" title="Tenho" data-filter="have">✅ Tenho</button>
+            <button class="filter-tab" onclick="setFilter('missing',this)" title="Falta" data-filter="missing">❌ Falta</button>
+          </div>
+          <select id="genFilter" onchange="renderList()" aria-label="Filtrar por geração" style="margin-bottom:0;min-width:110px;flex:0 0 auto;">
+            <option value="0">🌍 Nacional</option>
+            <option value="1">Gen I</option>
+            <option value="2">Gen II</option>
+            <option value="3">Gen III</option>
+            <option value="4">Gen IV</option>
+            <option value="5">Gen V</option>
+            <option value="6">Gen VI</option>
+            <option value="7">Gen VII</option>
+            <option value="8">Gen VIII</option>
+            <option value="9">Gen IX</option>
+          </select>
+        </div>
+        <div class="entries-list" id="entriesList" aria-label="Lista de Pokémon guardados"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drag & Drop Import -->
+  <div class="card section-gap" id="dropCard">
+    <h2 id="dragTitle">📂 Importar por Arrastar</h2>
+    <div class="drop-zone" id="dropZone" tabindex="0" role="button" aria-label="Zona de arrastar e largar JSON"
+      ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)"
+      onclick="triggerImport()">
+      Arrasta um ficheiro <strong>.json</strong> aqui ou clica para selecionar
+    </div>
+  </div>
+</div>
+
+<!-- SUPPORT BANNER -->
+<div id="supportBanner" style="background:var(--surface);border-top:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:0;">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:1.2rem;">☕</span>
+    <div>
+      <div style="font-size:0.85rem;font-weight:600;color:var(--text)" id="bannerTitle">Gostas da ferramenta?</div>
+      <div style="font-size:0.78rem;color:var(--text-muted)" id="bannerSub">É gratuita e sem anúncios. Se quiser apoiar, um café ajuda muito!</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <a href="https://ko-fi.com/YOUR_KOFI" target="_blank" rel="noopener"
+       style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#FF5E5B;color:#fff;border-radius:8px;font-size:0.82rem;font-weight:700;text-decoration:none;transition:opacity 0.15s;"
+       onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1" id="bannerBtn">
+      ☕ Ko-fi
+    </a>
+    <button onclick="document.getElementById('supportBanner').style.display='none';localStorage.setItem('pb_banner_closed','1');"
+      style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;transition:color 0.15s;"
+      onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'"
+      id="bannerClose" title="Fechar">✕</button>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal-overlay" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+  <div class="modal" style="max-width:560px;max-height:80vh;overflow-y:auto;">
+    <h3 id="helpModalTitle" data-i18n="help.title">❓ Como funciona</h3>
+    <div id="helpContent" style="font-size:0.88rem;color:var(--text-muted);line-height:1.75;"></div>
+    <div class="btn-row" style="margin-top:18px;">
+      <button class="btn primary" onclick="closeHelp()" data-i18n="help.close">Fechar</button>
+    </div>
+  </div>
+</div>
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Confirm modal -->
+<div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3 id="confirmTitle">Confirmar</h3>
+    <p id="confirmMsg">Tens a certeza?</p>
+    <div class="btn-row">
+      <button class="btn" id="confirmCancelBtn" onclick="closeModal()">Cancelar</button>
+      <button class="btn danger" id="confirmOk" onclick="">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- BINDER MODE OVERLAY -->
+<div id="binderOverlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow:hidden;flex-direction:column;">
+  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div style="font-size:1.1rem;font-weight:700;display:flex;align-items:center;gap:10px;">
+      📖 My Binder
+      <span id="binderPageLabel" style="font-size:0.82rem;color:var(--text-muted);font-weight:400;"></span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="btn" onclick="binderPrev()" id="binderPrevBtn">◀ Anterior</button>
+      <button class="btn" onclick="binderNext()" id="binderNextBtn">Seguinte ▶</button>
+      <button class="btn" onclick="toggleBinderMode()" id="binderCloseBtn">✕ Fechar</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
+    <!-- Binder pages -->
+    <div id="binderPagesArea" style="display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;gap:16px;flex-wrap:wrap;"></div>
+    <!-- Collection list inside binder -->
+    <div style="padding:0 24px 24px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);">
+        <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted);margin-bottom:12px;" id="binderCollectionTitle">📋 Coleção</div>
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <input type="text" id="binderFilterInput" placeholder="🔎  Filtrar..." oninput="renderBinderList()"
+            style="flex:1;min-width:140px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.9rem;margin-bottom:0;">
+          <div class="filter-tabs">
+            <button class="filter-tab" onclick="setBinderFilter('all',this)" data-filter="all">Todos</button>
+            <button class="filter-tab active" onclick="setBinderFilter('have',this)" data-filter="have">✅ Tenho</button>
+            <button class="filter-tab" onclick="setBinderFilter('missing',this)" data-filter="missing">❌ Falta</button>
+          </div>
+          <select id="binderGenFilter" onchange="renderBinderList()" aria-label="Filtrar por geração" style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.82rem;">
+            <option value="0">🌍 Nacional</option>
+            <option value="1">Gen I</option>
+            <option value="2">Gen II</option>
+            <option value="3">Gen III</option>
+            <option value="4">Gen IV</option>
+            <option value="5">Gen V</option>
+            <option value="6">Gen VI</option>
+            <option value="7">Gen VII</option>
+            <option value="8">Gen VIII</option>
+            <option value="9">Gen IX</option>
+          </select>
+        </div>
+        <div id="binderEntriesList" class="entries-list" style="max-height:360px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+<script>
+// ─── POKEDEX DATA (embedded, full gen 1-9) ───────────────────────────────────
+// We embed just enough data for autocomplete. Full list loaded from JSON if provided.
+// Fallback: build from known ranges using PokéAPI naming convention.
+
+let POKEDEX = []; // Will hold {entry_number, name} objects
+
+// Embedded minimal Pokédex (gens 1-9 names) - we'll try to load from the user's JSON
+// but also have a built-in fallback for common Pokémon
+const BUILTIN_POKEMON = [
+  [1,"bulbasaur"],[2,"ivysaur"],[3,"venusaur"],[4,"charmander"],[5,"charmeleon"],[6,"charizard"],
+  [7,"squirtle"],[8,"wartortle"],[9,"blastoise"],[10,"caterpie"],[11,"metapod"],[12,"butterfree"],
+  [13,"weedle"],[14,"kakuna"],[15,"beedrill"],[16,"pidgey"],[17,"pidgeotto"],[18,"pidgeot"],
+  [19,"rattata"],[20,"raticate"],[21,"spearow"],[22,"fearow"],[23,"ekans"],[24,"arbok"],
+  [25,"pikachu"],[26,"raichu"],[27,"sandshrew"],[28,"sandslash"],[29,"nidoran-f"],[30,"nidorina"],
+  [31,"nidoqueen"],[32,"nidoran-m"],[33,"nidorino"],[34,"nidoking"],[35,"clefairy"],[36,"clefable"],
+  [37,"vulpix"],[38,"ninetales"],[39,"jigglypuff"],[40,"wigglytuff"],[41,"zubat"],[42,"golbat"],
+  [43,"oddish"],[44,"gloom"],[45,"vileplume"],[46,"paras"],[47,"parasect"],[48,"venonat"],
+  [49,"venomoth"],[50,"diglett"],[51,"dugtrio"],[52,"meowth"],[53,"persian"],[54,"psyduck"],
+  [55,"golduck"],[56,"mankey"],[57,"primeape"],[58,"growlithe"],[59,"arcanine"],[60,"poliwag"],
+  [61,"poliwhirl"],[62,"poliwrath"],[63,"abra"],[64,"kadabra"],[65,"alakazam"],[66,"machop"],
+  [67,"machoke"],[68,"machamp"],[69,"bellsprout"],[70,"weepinbell"],[71,"victreebel"],[72,"tentacool"],
+  [73,"tentacruel"],[74,"geodude"],[75,"graveler"],[76,"golem"],[77,"ponyta"],[78,"rapidash"],
+  [79,"slowpoke"],[80,"slowbro"],[81,"magnemite"],[82,"magneton"],[83,"farfetchd"],[84,"doduo"],
+  [85,"dodrio"],[86,"seel"],[87,"dewgong"],[88,"grimer"],[89,"muk"],[90,"shellder"],
+  [91,"cloyster"],[92,"gastly"],[93,"haunter"],[94,"gengar"],[95,"onix"],[96,"drowzee"],
+  [97,"hypno"],[98,"krabby"],[99,"kingler"],[100,"voltorb"],[101,"electrode"],[102,"exeggcute"],
+  [103,"exeggutor"],[104,"cubone"],[105,"marowak"],[106,"hitmonlee"],[107,"hitmonchan"],[108,"lickitung"],
+  [109,"koffing"],[110,"weezing"],[111,"rhyhorn"],[112,"rhydon"],[113,"chansey"],[114,"tangela"],
+  [115,"kangaskhan"],[116,"horsea"],[117,"seadra"],[118,"goldeen"],[119,"seaking"],[120,"staryu"],
+  [121,"starmie"],[122,"mr-mime"],[123,"scyther"],[124,"jynx"],[125,"electabuzz"],[126,"magmar"],
+  [127,"pinsir"],[128,"tauros"],[129,"magikarp"],[130,"gyarados"],[131,"lapras"],[132,"ditto"],
+  [133,"eevee"],[134,"vaporeon"],[135,"jolteon"],[136,"flareon"],[137,"porygon"],[138,"omanyte"],
+  [139,"omastar"],[140,"kabuto"],[141,"kabutops"],[142,"aerodactyl"],[143,"snorlax"],[144,"articuno"],
+  [145,"zapdos"],[146,"moltres"],[147,"dratini"],[148,"dragonair"],[149,"dragonite"],[150,"mewtwo"],
+  [151,"mew"],
+  [152,"chikorita"],[153,"bayleef"],[154,"meganium"],[155,"cyndaquil"],[156,"quilava"],[157,"typhlosion"],
+  [158,"totodile"],[159,"croconaw"],[160,"feraligatr"],[161,"sentret"],[162,"furret"],[163,"hoothoot"],
+  [164,"noctowl"],[165,"ledyba"],[166,"ledian"],[167,"spinarak"],[168,"ariados"],[169,"crobat"],
+  [170,"chinchou"],[171,"lanturn"],[172,"pichu"],[173,"cleffa"],[174,"igglybuff"],[175,"togepi"],
+  [176,"togetic"],[177,"natu"],[178,"xatu"],[179,"mareep"],[180,"flaaffy"],[181,"ampharos"],
+  [182,"bellossom"],[183,"marill"],[184,"azumarill"],[185,"sudowoodo"],[186,"politoed"],[187,"hoppip"],
+  [188,"skiploom"],[189,"jumpluff"],[190,"aipom"],[191,"sunkern"],[192,"sunflora"],[193,"yanma"],
+  [194,"wooper"],[195,"quagsire"],[196,"espeon"],[197,"umbreon"],[198,"murkrow"],[199,"slowking"],
+  [200,"misdreavus"],[201,"unown"],[202,"wobbuffet"],[203,"girafarig"],[204,"pineco"],[205,"forretress"],
+  [206,"dunsparce"],[207,"gligar"],[208,"steelix"],[209,"snubbull"],[210,"granbull"],[211,"qwilfish"],
+  [212,"scizor"],[213,"shuckle"],[214,"heracross"],[215,"sneasel"],[216,"teddiursa"],[217,"ursaring"],
+  [218,"slugma"],[219,"magcargo"],[220,"swinub"],[221,"piloswine"],[222,"corsola"],[223,"remoraid"],
+  [224,"octillery"],[225,"delibird"],[226,"mantine"],[227,"skarmory"],[228,"houndour"],[229,"houndoom"],
+  [230,"kingdra"],[231,"phanpy"],[232,"donphan"],[233,"porygon2"],[234,"stantler"],[235,"smeargle"],
+  [236,"tyrogue"],[237,"hitmontop"],[238,"smoochum"],[239,"elekid"],[240,"magby"],[241,"miltank"],
+  [242,"blissey"],[243,"raikou"],[244,"entei"],[245,"suicune"],[246,"larvitar"],[247,"pupitar"],
+  [248,"tyranitar"],[249,"lugia"],[250,"ho-oh"],[251,"celebi"],
+  [252,"treecko"],[253,"grovyle"],[254,"sceptile"],[255,"torchic"],[256,"combusken"],[257,"blaziken"],
+  [258,"mudkip"],[259,"marshtomp"],[260,"swampert"],[261,"poochyena"],[262,"mightyena"],[263,"zigzagoon"],
+  [264,"linoone"],[265,"wurmple"],[266,"silcoon"],[267,"beautifly"],[268,"cascoon"],[269,"dustox"],
+  [270,"lotad"],[271,"lombre"],[272,"ludicolo"],[273,"seedot"],[274,"nuzleaf"],[275,"shiftry"],
+  [276,"taillow"],[277,"swellow"],[278,"wingull"],[279,"pelipper"],[280,"ralts"],[281,"kirlia"],
+  [282,"gardevoir"],[283,"surskit"],[284,"masquerain"],[285,"shroomish"],[286,"breloom"],[287,"slakoth"],
+  [288,"vigoroth"],[289,"slaking"],[290,"nincada"],[291,"ninjask"],[292,"shedinja"],[293,"whismur"],
+  [294,"loudred"],[295,"exploud"],[296,"makuhita"],[297,"hariyama"],[298,"azurill"],[299,"nosepass"],
+  [300,"skitty"],[301,"delcatty"],[302,"sableye"],[303,"mawile"],[304,"aron"],[305,"lairon"],
+  [306,"aggron"],[307,"meditite"],[308,"medicham"],[309,"electrike"],[310,"manectric"],[311,"plusle"],
+  [312,"minun"],[313,"volbeat"],[314,"illumise"],[315,"roselia"],[316,"gulpin"],[317,"swalot"],
+  [318,"carvanha"],[319,"sharpedo"],[320,"wailmer"],[321,"wailord"],[322,"numel"],[323,"camerupt"],
+  [324,"torkoal"],[325,"spoink"],[326,"grumpig"],[327,"spinda"],[328,"trapinch"],[329,"vibrava"],
+  [330,"flygon"],[331,"cacnea"],[332,"cacturne"],[333,"swablu"],[334,"altaria"],[335,"zangoose"],
+  [336,"seviper"],[337,"lunatone"],[338,"solrock"],[339,"barboach"],[340,"whiscash"],[341,"corphish"],
+  [342,"crawdaunt"],[343,"baltoy"],[344,"claydol"],[345,"lileep"],[346,"cradily"],[347,"anorith"],
+  [348,"armaldo"],[349,"feebas"],[350,"milotic"],[351,"castform"],[352,"kecleon"],[353,"shuppet"],
+  [354,"banette"],[355,"duskull"],[356,"dusclops"],[357,"tropius"],[358,"chimecho"],[359,"absol"],
+  [360,"wynaut"],[361,"snorunt"],[362,"glalie"],[363,"spheal"],[364,"sealeo"],[365,"walrein"],
+  [366,"clamperl"],[367,"huntail"],[368,"gorebyss"],[369,"relicanth"],[370,"luvdisc"],[371,"bagon"],
+  [372,"shelgon"],[373,"salamence"],[374,"beldum"],[375,"metang"],[376,"metagross"],[377,"regirock"],
+  [378,"regice"],[379,"registeel"],[380,"latias"],[381,"latios"],[382,"kyogre"],[383,"groudon"],
+  [384,"rayquaza"],[385,"jirachi"],[386,"deoxys"],
+  [387,"turtwig"],[388,"grotle"],[389,"torterra"],[390,"chimchar"],[391,"monferno"],[392,"infernape"],
+  [393,"piplup"],[394,"prinplup"],[395,"empoleon"],[396,"starly"],[397,"staravia"],[398,"staraptor"],
+  [399,"bidoof"],[400,"bibarel"],[401,"kricketot"],[402,"kricketune"],[403,"shinx"],[404,"luxio"],
+  [405,"luxray"],[406,"budew"],[407,"roserade"],[408,"cranidos"],[409,"rampardos"],[410,"shieldon"],
+  [411,"bastiodon"],[412,"burmy"],[413,"wormadam"],[414,"mothim"],[415,"combee"],[416,"vespiquen"],
+  [417,"pachirisu"],[418,"buizel"],[419,"floatzel"],[420,"cherubi"],[421,"cherrim"],[422,"shellos"],
+  [423,"gastrodon"],[424,"ambipom"],[425,"drifloon"],[426,"drifblim"],[427,"buneary"],[428,"lopunny"],
+  [429,"mismagius"],[430,"honchkrow"],[431,"glameow"],[432,"purugly"],[433,"chingling"],[434,"stunky"],
+  [435,"skuntank"],[436,"bronzor"],[437,"bronzong"],[438,"bonsly"],[439,"mime-jr"],[440,"happiny"],
+  [441,"chatot"],[442,"spiritomb"],[443,"gible"],[444,"gabite"],[445,"garchomp"],[446,"munchlax"],
+  [447,"riolu"],[448,"lucario"],[449,"hippopotas"],[450,"hippowdon"],[451,"skorupi"],[452,"drapion"],
+  [453,"croagunk"],[454,"toxicroak"],[455,"carnivine"],[456,"finneon"],[457,"lumineon"],[458,"mantyke"],
+  [459,"snover"],[460,"abomasnow"],[461,"weavile"],[462,"magnezone"],[463,"lickilicky"],[464,"rhyperior"],
+  [465,"tangrowth"],[466,"electivire"],[467,"magmortar"],[468,"togekiss"],[469,"yanmega"],[470,"leafeon"],
+  [471,"glaceon"],[472,"gliscor"],[473,"mamoswine"],[474,"porygon-z"],[475,"gallade"],[476,"probopass"],
+  [477,"dusknoir"],[478,"froslass"],[479,"rotom"],[480,"uxie"],[481,"mesprit"],[482,"azelf"],
+  [483,"dialga"],[484,"palkia"],[485,"heatran"],[486,"regigigas"],[487,"giratina"],[488,"cresselia"],
+  [489,"phione"],[490,"manaphy"],[491,"darkrai"],[492,"shaymin"],[493,"arceus"],[494,"victini"],
+  [495,"snivy"],[496,"servine"],[497,"serperior"],[498,"tepig"],[499,"pignite"],[500,"emboar"],
+  [501,"oshawott"],[502,"dewott"],[503,"samurott"],[504,"patrat"],[505,"watchog"],[506,"lillipup"],
+  [507,"herdier"],[508,"stoutland"],[509,"purrloin"],[510,"liepard"],[511,"pansage"],[512,"simisage"],
+  [513,"pansear"],[514,"simisear"],[515,"panpour"],[516,"simipour"],[517,"munna"],[518,"musharna"],
+  [519,"pidove"],[520,"tranquill"],[521,"unfezant"],[522,"blitzle"],[523,"zebstrika"],[524,"roggenrola"],
+  [525,"boldore"],[526,"gigalith"],[527,"woobat"],[528,"swoobat"],[529,"drilbur"],[530,"excadrill"],
+  [531,"audino"],[532,"timburr"],[533,"gurdurr"],[534,"conkeldurr"],[535,"tympole"],[536,"palpitoad"],
+  [537,"seismitoad"],[538,"throh"],[539,"sawk"],[540,"sewaddle"],[541,"swadloon"],[542,"leavanny"],
+  [543,"venipede"],[544,"whirlipede"],[545,"scolipede"],[546,"cottonee"],[547,"whimsicott"],[548,"petilil"],
+  [549,"lilligant"],[550,"basculin"],[551,"sandile"],[552,"krokorok"],[553,"krookodile"],[554,"darumaka"],
+  [555,"darmanitan"],[556,"maractus"],[557,"dwebble"],[558,"crustle"],[559,"scraggy"],[560,"scrafty"],
+  [561,"sigilyph"],[562,"yamask"],[563,"cofagrigus"],[564,"tirtouga"],[565,"carracosta"],[566,"archen"],
+  [567,"archeops"],[568,"trubbish"],[569,"garbodor"],[570,"zorua"],[571,"zoroark"],[572,"minccino"],
+  [573,"cinccino"],[574,"gothita"],[575,"gothorita"],[576,"gothitelle"],[577,"solosis"],[578,"duosion"],
+  [579,"reuniclus"],[580,"ducklett"],[581,"swanna"],[582,"vanillite"],[583,"vanillish"],[584,"vanilluxe"],
+  [585,"deerling"],[586,"sawsbuck"],[587,"emolga"],[588,"karrablast"],[589,"escavalier"],[590,"foongus"],
+  [591,"amoonguss"],[592,"frillish"],[593,"jellicent"],[594,"alomomola"],[595,"joltik"],[596,"galvantula"],
+  [597,"ferroseed"],[598,"ferrothorn"],[599,"klink"],[600,"klang"],[601,"klinklang"],[602,"tynamo"],
+  [603,"eelektrik"],[604,"eelektross"],[605,"elgyem"],[606,"beheeyem"],[607,"litwick"],[608,"lampent"],
+  [609,"chandelure"],[610,"axew"],[611,"fraxure"],[612,"haxorus"],[613,"cubchoo"],[614,"beartic"],
+  [615,"cryogonal"],[616,"shelmet"],[617,"accelgor"],[618,"stunfisk"],[619,"mienfoo"],[620,"mienshao"],
+  [621,"druddigon"],[622,"golett"],[623,"golurk"],[624,"pawniard"],[625,"bisharp"],[626,"bouffalant"],
+  [627,"rufflet"],[628,"braviary"],[629,"vullaby"],[630,"mandibuzz"],[631,"heatmor"],[632,"durant"],
+  [633,"deino"],[634,"zweilous"],[635,"hydreigon"],[636,"larvesta"],[637,"volcarona"],[638,"cobalion"],
+  [639,"terrakion"],[640,"virizion"],[641,"tornadus"],[642,"thundurus"],[643,"reshiram"],[644,"zekrom"],
+  [645,"landorus"],[646,"kyurem"],[647,"keldeo"],[648,"meloetta"],[649,"genesect"],
+  [650,"chespin"],[651,"quilladin"],[652,"chesnaught"],[653,"fennekin"],[654,"braixen"],[655,"delphox"],
+  [656,"froakie"],[657,"frogadier"],[658,"greninja"],[659,"bunnelby"],[660,"diggersby"],[661,"fletchling"],
+  [662,"fletchinder"],[663,"talonflame"],[664,"scatterbug"],[665,"spewpa"],[666,"vivillon"],[667,"litleo"],
+  [668,"pyroar"],[669,"flabebe"],[670,"floette"],[671,"florges"],[672,"skiddo"],[673,"gogoat"],
+  [674,"pancham"],[675,"pangoro"],[676,"furfrou"],[677,"espurr"],[678,"meowstic"],[679,"honedge"],
+  [680,"doublade"],[681,"aegislash"],[682,"spritzee"],[683,"aromatisse"],[684,"swirlix"],[685,"slurpuff"],
+  [686,"inkay"],[687,"malamar"],[688,"binacle"],[689,"barbaracle"],[690,"skrelp"],[691,"dragalge"],
+  [692,"clauncher"],[693,"clawitzer"],[694,"helioptile"],[695,"heliolisk"],[696,"tyrunt"],[697,"tyrantrum"],
+  [698,"amaura"],[699,"aurorus"],[700,"sylveon"],[701,"hawlucha"],[702,"dedenne"],[703,"carbink"],
+  [704,"goomy"],[705,"sliggoo"],[706,"goodra"],[707,"klefki"],[708,"phantump"],[709,"trevenant"],
+  [710,"pumpkaboo"],[711,"gourgeist"],[712,"bergmite"],[713,"avalugg"],[714,"noibat"],[715,"noivern"],
+  [716,"xerneas"],[717,"yveltal"],[718,"zygarde"],[719,"diancie"],[720,"hoopa"],[721,"volcanion"],
+  [722,"rowlet"],[723,"dartrix"],[724,"decidueye"],[725,"litten"],[726,"torracat"],[727,"incineroar"],
+  [728,"popplio"],[729,"brionne"],[730,"primarina"],[731,"pikipek"],[732,"trumbeak"],[733,"toucannon"],
+  [734,"yungoos"],[735,"gumshoos"],[736,"grubbin"],[737,"charjabug"],[738,"vikavolt"],[739,"crabrawler"],
+  [740,"crabominable"],[741,"oricorio"],[742,"cutiefly"],[743,"ribombee"],[744,"rockruff"],[745,"lycanroc"],
+  [746,"wishiwashi"],[747,"mareanie"],[748,"toxapex"],[749,"mudbray"],[750,"mudsdale"],[751,"dewpider"],
+  [752,"araquanid"],[753,"fomantis"],[754,"lurantis"],[755,"morelull"],[756,"shiinotic"],[757,"salandit"],
+  [758,"salazzle"],[759,"stufful"],[760,"bewear"],[761,"bounsweet"],[762,"steenee"],[763,"tsareena"],
+  [764,"comfey"],[765,"oranguru"],[766,"passimian"],[767,"wimpod"],[768,"golisopod"],[769,"sandygast"],
+  [770,"palossand"],[771,"pyukumuku"],[772,"type-null"],[773,"silvally"],[774,"minior"],[775,"komala"],
+  [776,"turtonator"],[777,"togedemaru"],[778,"mimikyu"],[779,"bruxish"],[780,"drampa"],[781,"dhelmise"],
+  [782,"jangmo-o"],[783,"hakamo-o"],[784,"kommo-o"],[785,"tapu-koko"],[786,"tapu-lele"],[787,"tapu-bulu"],
+  [788,"tapu-fini"],[789,"cosmog"],[790,"cosmoem"],[791,"solgaleo"],[792,"lunala"],[793,"nihilego"],
+  [794,"buzzwole"],[795,"pheromosa"],[796,"xurkitree"],[797,"celesteela"],[798,"kartana"],[799,"guzzlord"],
+  [800,"necrozma"],[801,"magearna"],[802,"marshadow"],[803,"poipole"],[804,"naganadel"],[805,"stakataka"],
+  [806,"blacephalon"],[807,"zeraora"],[808,"meltan"],[809,"melmetal"],
+  [810,"grookey"],[811,"thwackey"],[812,"rillaboom"],[813,"scorbunny"],[814,"raboot"],[815,"cinderace"],
+  [816,"sobble"],[817,"drizzile"],[818,"inteleon"],[819,"skwovet"],[820,"greedent"],[821,"rookidee"],
+  [822,"corvisquire"],[823,"corviknight"],[824,"blipbug"],[825,"dottler"],[826,"orbeetle"],[827,"nickit"],
+  [828,"thievul"],[829,"gossifleur"],[830,"eldegoss"],[831,"wooloo"],[832,"dubwool"],[833,"chewtle"],
+  [834,"drednaw"],[835,"yamper"],[836,"boltund"],[837,"rolycoly"],[838,"carkol"],[839,"coalossal"],
+  [840,"applin"],[841,"flapple"],[842,"appletun"],[843,"silicobra"],[844,"sandaconda"],[845,"cramorant"],
+  [846,"arrokuda"],[847,"barraskewda"],[848,"toxel"],[849,"toxtricity"],[850,"sizzlipede"],[851,"centiskorch"],
+  [852,"clobbopus"],[853,"grapploct"],[854,"sinistea"],[855,"polteageist"],[856,"hatenna"],[857,"hattrem"],
+  [858,"hatterene"],[859,"impidimp"],[860,"morgrem"],[861,"grimmsnarl"],[862,"obstagoon"],[863,"perrserker"],
+  [864,"cursola"],[865,"sirfetchd"],[866,"mr-rime"],[867,"runerigus"],[868,"milcery"],[869,"alcremie"],
+  [870,"falinks"],[871,"pincurchin"],[872,"snom"],[873,"frosmoth"],[874,"stonjourner"],[875,"eiscue"],
+  [876,"indeedee"],[877,"morpeko"],[878,"cufant"],[879,"copperajah"],[880,"dracozolt"],[881,"arctozolt"],
+  [882,"dracovish"],[883,"arctovish"],[884,"duraludon"],[885,"dreepy"],[886,"drakloak"],[887,"dragapult"],
+  [888,"zacian"],[889,"zamazenta"],[890,"eternatus"],[891,"kubfu"],[892,"urshifu"],[893,"zarude"],
+  [894,"regieleki"],[895,"regidrago"],[896,"glastrier"],[897,"spectrier"],[898,"calyrex"],[899,"wyrdeer"],
+  [900,"kleavor"],[901,"ursaluna"],[902,"basculegion"],[903,"sneasler"],[904,"overqwil"],[905,"enamorus"],
+  [906,"sprigatito"],[907,"floragato"],[908,"meowscarada"],[909,"fuecoco"],[910,"crocalor"],[911,"skeledirge"],
+  [912,"quaxly"],[913,"quaxwell"],[914,"quaquaval"],[915,"lechonk"],[916,"oinkologne"],[917,"tarountula"],
+  [918,"spidops"],[919,"nymble"],[920,"lokix"],[921,"pawmi"],[922,"pawmo"],[923,"pawmot"],
+  [924,"tandemaus"],[925,"maushold"],[926,"fidough"],[927,"dachsbun"],[928,"smoliv"],[929,"dolliv"],
+  [930,"arboliva"],[931,"squawkabilly"],[932,"nacli"],[933,"naclstack"],[934,"garganacl"],[935,"charcadet"],
+  [936,"armarouge"],[937,"ceruledge"],[938,"tadbulb"],[939,"bellibolt"],[940,"wattrel"],[941,"kilowattrel"],
+  [942,"maschiff"],[943,"mabosstiff"],[944,"shroodle"],[945,"grafaiai"],[946,"bramblin"],[947,"brambleghast"],
+  [948,"toedscool"],[949,"toedscruel"],[950,"klawf"],[951,"capsakid"],[952,"scovillain"],[953,"rellor"],
+  [954,"rabsca"],[955,"flittle"],[956,"espathra"],[957,"tinkatink"],[958,"tinkatuff"],[959,"tinkaton"],
+  [960,"wiglett"],[961,"wugtrio"],[962,"bombirdier"],[963,"finizen"],[964,"palafin"],[965,"varoom"],
+  [966,"revavroom"],[967,"cyclizar"],[968,"orthworm"],[969,"glimmet"],[970,"glimmora"],[971,"greavard"],
+  [972,"houndstone"],[973,"flamigo"],[974,"cetoddle"],[975,"cetitan"],[976,"veluza"],[977,"dondozo"],
+  [978,"tatsugiri"],[979,"annihilape"],[980,"clodsire"],[981,"farigiraf"],[982,"dudunsparce"],[983,"kingambit"],
+  [984,"great-tusk"],[985,"scream-tail"],[986,"brute-bonnet"],[987,"flutter-mane"],[988,"slither-wing"],
+  [989,"sandy-shocks"],[990,"iron-treads"],[991,"iron-bundle"],[992,"iron-hands"],[993,"iron-jugulis"],
+  [994,"iron-moth"],[995,"iron-thorns"],[996,"frigibax"],[997,"arctibax"],[998,"baxcalibur"],
+  [999,"gimmighoul"],[1000,"gholdengo"],[1001,"wo-chien"],[1002,"chien-pao"],[1003,"ting-lu"],
+  [1004,"chi-yu"],[1005,"roaring-moon"],[1006,"iron-valiant"],[1007,"koraidon"],[1008,"miraidon"],
+  [1009,"walking-wake"],[1010,"iron-leaves"],[1011,"dipplin"],[1012,"poltchageist"],[1013,"sinistcha"],
+  [1014,"okidogi"],[1015,"munkidori"],[1016,"fezandipiti"],[1017,"ogerpon"],[1018,"archaludon"],
+  [1019,"hydrapple"],[1020,"gouging-fire"],[1021,"raging-bolt"],[1022,"iron-boulder"],[1023,"iron-crown"],
+  [1024,"terapagos"],[1025,"pecharunt"]
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let collection = {}; // {number: {number, name, page, spot, spotLabel}}
+let currentEntry = null;
+let acIndex = -1;
+let acResults = [];
+let filterMode = 'have';
+
+// ─── SEED DATA (user's existing collection) ───────────────────────────────────
+const SEED_DATA = [{"number":25,"name":"Pikachu"},{"number":39,"name":"Jigglypuff"},{"number":52,"name":"Meowth"},{"number":54,"name":"Psyduck"},{"number":58,"name":"Growlithe"},{"number":77,"name":"Ponyta"},{"number":81,"name":"Magnemite"},{"number":93,"name":"Haunter"},{"number":104,"name":"Cubone"},{"number":105,"name":"Marowak"},{"number":113,"name":"Chansey"},{"number":120,"name":"Staryu"},{"number":168,"name":"Ariados"},{"number":195,"name":"Quagsire"},{"number":197,"name":"Umbreon"},{"number":209,"name":"Snubbull"},{"number":214,"name":"Heracross"},{"number":242,"name":"Blissey"},{"number":281,"name":"Kirlia"},{"number":425,"name":"Drifloon"},{"number":448,"name":"Lucario"},{"number":450,"name":"Hippowdon"},{"number":464,"name":"Rhyperior"},{"number":495,"name":"Snivy"},{"number":496,"name":"Servine"},{"number":497,"name":"Serperior"},{"number":657,"name":"Frogadier"},{"number":660,"name":"Diggersby"},{"number":661,"name":"Fletchling"},{"number":662,"name":"Fletchinder"},{"number":666,"name":"Vivillon"},{"number":675,"name":"Pangoro"},{"number":676,"name":"Furfrou"},{"number":681,"name":"Aegislash"},{"number":699,"name":"Aurorus"},{"number":701,"name":"Hawlucha"},{"number":721,"name":"Volcanion"},{"number":760,"name":"Bewear"},{"number":777,"name":"Togedemaru"},{"number":813,"name":"Scorbunny"},{"number":844,"name":"Sandaconda"},{"number":859,"name":"Impidimp"},{"number":906,"name":"Sprigatito"},{"number":921,"name":"Pawmi"},{"number":924,"name":"Tandemaus"},{"number":950,"name":"Klawf"},{"number":955,"name":"Flittle"},{"number":967,"name":"Cyclizar"},{"number":974,"name":"Cetoddle"},{"number":975,"name":"Cetitan"},{"number":985,"name":"Scream Tail"},{"number":989,"name":"Sandy Shocks"},{"number":1005,"name":"Roaring Moon"}];
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  POKEDEX = BUILTIN_POKEMON.map(([n, name]) => ({ entry_number: n, name }));
+  loadCollection();
+  // Seed existing data if collection is empty
+  if (!Object.keys(collection).length) {
+    SEED_DATA.forEach(e => {
+      const pos = calcPosition(e.number);
+      collection[e.number] = { number: e.number, name: e.name, ...pos };
+    });
+    saveCollection();
+  }
+  renderList();
+  renderStats();
+  applyLang();
+
+  // Try to load user's pokedex JSON if it was imported before
+  const saved = localStorage.getItem('pb_pokedex');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      mergePokedex(data);
+    } catch(e) {}
+  }
+
+  // Hide banner if previously closed
+  if (localStorage.getItem('pb_banner_closed')) {
+    var b = document.getElementById('supportBanner');
+    if (b) b.style.display = 'none';
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === 'f') { e.preventDefault(); document.getElementById('pokeSearch').focus(); }
+    if (e.key === 'Escape') { clearInputs(); closeModal(); }
+  });
+}
+
+function mergePokedex(data) {
+  let entries = [];
+  if (data.pokemon_entries) entries = data.pokemon_entries.map(e => ({entry_number: e.entry_number, name: e.pokemon_species.name}));
+  else if (Array.isArray(data)) entries = data;
+  if (entries.length > 0) {
+    const existing = new Set(POKEDEX.map(p => p.entry_number));
+    for (const e of entries) if (!existing.has(e.entry_number)) POKEDEX.push(e);
+    POKEDEX.sort((a,b) => a.entry_number - b.entry_number);
+  }
+}
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────────
+function loadCollection() {
+  try { collection = JSON.parse(localStorage.getItem('pb_collection') || '{}'); } catch(e) { collection = {}; }
+}
+
+function saveCollection() {
+  localStorage.setItem('pb_collection', JSON.stringify(collection));
+  // Auto-backup
+  localStorage.setItem('pb_backup', JSON.stringify({ts: Date.now(), data: collection}));
+}
+
+function restoreBackup() {
+  const b = localStorage.getItem('pb_backup');
+  if (!b) { toast(t('toast.nobackup'), 'error'); return; }
+  try {
+    const {ts, data} = JSON.parse(b);
+    const d = new Date(ts);
+    showConfirm('Restaurar Backup', `Restaurar backup de ${d.toLocaleString('pt-PT')}? A coleção atual será substituída.`, () => {
+      collection = data;
+      saveCollection();
+      renderList();
+      renderStats();
+      toast(t('toast.backup'), 'success');
+    });
+  } catch(e) { toast('Backup inválido.', 'error'); }
+}
+
+// ─── CALC ─────────────────────────────────────────────────────────────────────
+function calcPosition(num) {
+  const page = Math.ceil(num / 9);
+  const spot = ((num - 1) % 9) + 1;
+  const labels = ['Canto superior esquerdo','Topo centro','Canto superior direito',
+    'Centro esquerdo','Centro','Centro direito',
+    'Canto inferior esquerdo','Base centro','Canto inferior direito'];
+  const spotLabel = labels[spot - 1];
+  const sheetMode = document.getElementById('sheetModeToggle').checked;
+  let sheetInfo = '';
+  if (sheetMode) {
+    const sheetNum = Math.ceil(page / 2);
+    const side = page % 2 !== 0 ? t('binder.front') : t('binder.back');
+    sheetInfo = t('binder.sheet') + ' ' + sheetNum + ' · ' + side;
+  }
+  return { page, spot, spotLabel, sheetInfo };
+}
+
+// ─── SEARCH / AUTOCOMPLETE ────────────────────────────────────────────────────
+function normName(s) {
+  return s.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s-]/g,'');
+}
+
+function searchPokedex(q) {
+  q = normName(q.trim());
+  if (!q) return [];
+  const num = parseInt(q);
+  if (!isNaN(num)) {
+    return POKEDEX.filter(p => String(p.entry_number).startsWith(q)).slice(0, 10);
+  }
+  // Partial name match, sorted by best match
+  return POKEDEX.filter(p => normName(p.name).includes(q)).slice(0, 10);
+}
+
+function onSearchInput() {
+  // Any manual typing cancels the pending auto-clear
+  if (_autoClearTimer) { clearTimeout(_autoClearTimer); _autoClearTimer = null; }
+  const q = document.getElementById('pokeSearch').value;
+  acResults = searchPokedex(q);
+  acIndex = -1;
+  renderAutocomplete();
+  if (acResults.length === 1 || (acResults.length > 0 && normName(acResults[0].name) === normName(q))) {
+    selectAcResult(acResults[0]);
+  } else {
+    // Try exact number
+    const num = parseInt(q);
+    if (!isNaN(num)) {
+      const found = POKEDEX.find(p => p.entry_number === num);
+      if (found) { selectAcResult(found); return; }
+    }
+    currentEntry = null;
+    document.getElementById('resultBox').classList.remove('visible');
+  }
+}
+
+function renderAutocomplete() {
+  const box = document.getElementById('autocomplete-box');
+  if (!acResults.length) { box.classList.remove('open'); return; }
+  box.innerHTML = acResults.map((p,i) => {
+    const inColl = collection[p.entry_number];
+    const badge = inColl ? '✅' : '';
+    return `<div class="ac-item ${i===acIndex?'active':''}" role="option" onclick="selectAcResult(POKEDEX.find(x=>x.entry_number===${p.entry_number}))">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.entry_number}.png" 
+        alt="${p.name}" onerror="this.style.display='none'" loading="lazy">
+      <span class="ac-num">#${p.entry_number}</span>
+      <span style="text-transform:capitalize;flex:1">${highlightMatch(getPokeLocalName(p.entry_number, p.name), document.getElementById('pokeSearch').value)}</span>
+      <span>${badge}</span>
+    </div>`;
+  }).join('');
+  box.classList.add('open');
+}
+
+function highlightMatch(name, q) {
+  const n = normName(name), qn = normName(q.trim());
+  if (!qn) return name;
+  const i = n.indexOf(qn);
+  if (i < 0) return name;
+  return name.slice(0,i) + `<strong style="color:var(--accent)">${name.slice(i,i+qn.length)}</strong>` + name.slice(i+qn.length);
+}
+
+function onSearchKey(e) {
+  const box = document.getElementById('autocomplete-box');
+  if (e.key === 'ArrowDown') { acIndex = Math.min(acIndex+1, acResults.length-1); renderAutocomplete(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { acIndex = Math.max(acIndex-1, -1); renderAutocomplete(); e.preventDefault(); }
+  else if (e.key === 'Enter') {
+    if (acIndex >= 0 && acResults[acIndex]) { selectAcResult(acResults[acIndex]); closeAC(); }
+    else if (currentEntry) saveEntry();
+    else if (acResults.length === 1) { selectAcResult(acResults[0]); }
+    e.preventDefault();
+  } else if (e.key === 'Escape') { closeAC(); }
+}
+
+function closeAC() { document.getElementById('autocomplete-box').classList.remove('open'); }
+
+let _autoClearTimer = null;
+
+function selectAcResult(p) {
+  if (!p) return;
+  const input = document.getElementById('pokeSearch');
+  // Cancel any pending auto-clear
+  if (_autoClearTimer) { clearTimeout(_autoClearTimer); _autoClearTimer = null; }
+  input.value = p.name;
+  input.readOnly = true;
+  input.style.opacity = '0.6';
+  closeAC();
+  const pos = calcPosition(p.entry_number);
+  currentEntry = { number: p.entry_number, name: p.name, ...pos };
+  renderResultBox(currentEntry);
+  // Auto-save
+  doSave();
+  // Re-enable input after 2s
+  setTimeout(() => {
+    input.readOnly = false;
+    input.style.opacity = '';
+  }, 2000);
+  // Schedule auto-clear at 30s, keyed so it can be cancelled
+  _autoClearTimer = setTimeout(() => {
+    _autoClearTimer = null;
+    input.value = '';
+    currentEntry = null;
+    document.getElementById('resultBox').classList.remove('visible');
+  }, 30000);
+}
+
+function renderResultBox(entry) {
+  const sheetMode = document.getElementById('sheetModeToggle').checked;
+  document.getElementById('rName').textContent = '#' + entry.number + ' ' + getPokeLocalName(entry.number, entry.name);
+  let detail = '<strong>' + t('add.page') + ':</strong> ' + entry.page + ' &nbsp;·&nbsp; <strong>' + t('add.pos') + ':</strong> ' + entry.spot + ' (' + entry.spotLabel + ')';
+  if (sheetMode && entry.sheetInfo) detail += '<br><strong>' + t('add.sheet') + ':</strong> ' + entry.sheetInfo;
+  if (collection[entry.number]) detail += '<br><span style="color:var(--success)">✅ ' + t('add.already') + '</span>';
+  document.getElementById('rDetail').innerHTML = detail;
+
+  // Binder preview
+  const grid = document.getElementById('binderPreview');
+  grid.innerHTML = Array.from({length:9},(_,i) =>
+    `<div class="binder-cell ${i+1===entry.spot?'active':''}">${i+1}</div>`
+  ).join('');
+
+  // Image
+  const img = document.getElementById('rImg');
+  img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${entry.number}.png`;
+  img.alt = entry.name;
+  img.style.display = 'block';
+  img.onerror = () => {
+    img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${entry.number}.png`;
+  };
+
+  document.getElementById('resultBox').classList.add('visible');
+}
+
+// ─── SAVE / REMOVE ────────────────────────────────────────────────────────────
+function saveEntry() {
+  if (!currentEntry) { toast(t('toast.nosel'), 'error'); return; }
+  const existing = collection[currentEntry.number];
+  if (existing) {
+    showConfirm(t('confirm.overwrite.title'),
+      '#' + currentEntry.number + ' ' + getPokeLocalName(currentEntry.number, currentEntry.name) + ' ' + t('confirm.overwrite.msg'),
+      () => { doSave(); });
+    return;
+  }
+  doSave();
+}
+
+function doSave() {
+  if (!currentEntry) return;
+  const sheetMode = document.getElementById('sheetModeToggle').checked;
+  const pos = calcPosition(currentEntry.number);
+  collection[currentEntry.number] = { number: currentEntry.number, name: currentEntry.name, ...pos, _addedAt: Date.now() };
+  saveCollection();
+  renderList();
+  renderStats();
+  toast(getPokeLocalName(currentEntry.number, currentEntry.name) + ' ' + t('toast.saved') + ' ' + pos.page + ', ' + t('toast.pos') + ' ' + pos.spot, 'success');
+}
+
+function removeEntry(num) {
+  showConfirm(t('confirm.remove.title'), t('confirm.remove.msg'), () => {
+    delete collection[num];
+    saveCollection();
+    renderList();
+    renderStats();
+    toast(t('toast.removed'), 'warn');
+  });
+}
+
+function confirmClearAll() {
+  showConfirm(t('confirm.clear.title'), t('confirm.clear.msg'), () => {
+    collection = {};
+    saveCollection();
+    renderList();
+    renderStats();
+    toast(t('toast.cleared'), 'warn');
+  });
+}
+
+function clearInputs() {
+  if (_autoClearTimer) { clearTimeout(_autoClearTimer); _autoClearTimer = null; }
+  document.getElementById('pokeSearch').value = '';
+  currentEntry = null;
+  document.getElementById('resultBox').classList.remove('visible');
+  closeAC();
+}
+
+// ─── RENDER LIST ─────────────────────────────────────────────────────────────
+
+// ─── POKÉMON NAME TRANSLATION ─────────────────────────────────────────────────
+// PT and JP name overrides for well-known Pokémon (fallback = canonical EN name)
+var POKE_NAMES_PT = {
+  1:'Bulbassauro',2:'Ivyssauro',3:'Venossauro',4:'Charmander',5:'Charmeleon',6:'Charizard',
+  7:'Squirtle',8:'Wartortle',9:'Blastoise',10:'Lagarta',11:'Metapod',12:'Butterfree',
+  13:'Weedle',14:'Kakuna',15:'Beedrill',16:'Pidgey',17:'Pidgeotto',18:'Pidgeot',
+  19:'Rattata',20:'Raticate',25:'Pikachu',26:'Raichu',35:'Clefairy',36:'Clefable',
+  37:'Vulpix',38:'Ninetales',39:'Jigglypuff',40:'Wigglytuff',52:'Meowth',53:'Persian',
+  54:'Psyduck',55:'Golduck',63:'Abra',64:'Kadabra',65:'Alakazam',74:'Geodude',
+  79:'Slowpoke',80:'Slowbro',92:'Gastly',93:'Haunter',94:'Gengar',104:'Cubone',
+  105:'Marowak',113:'Chansey',120:'Staryu',121:'Starmie',129:'Magikarp',130:'Gyarados',
+  131:'Lapras',132:'Ditto',133:'Eevee',143:'Snorlax',147:'Dratini',148:'Dragonair',
+  149:'Dragonite',150:'Mewtwo',151:'Mew',152:'Chikorita',155:'Cyndaquil',158:'Totodile',
+  172:'Pichu',175:'Togepi',176:'Togetic',179:'Mareep',196:'Espeon',197:'Umbreon',
+  206:'Dunsparce',209:'Snubbull',210:'Granbull',214:'Heracross',218:'Slugma',
+  220:'Swinub',228:'Houndour',229:'Houndoom',242:'Blissey',248:'Tyranitar',
+  252:'Treecko',255:'Torchic',258:'Mudkip',280:'Ralts',281:'Kirlia',282:'Gardevoir',
+  383:'Groudon',384:'Rayquaza',385:'Jirachi',387:'Turtwig',390:'Chimchar',393:'Piplup',
+  403:'Shinx',425:'Drifloon',447:'Riolu',448:'Lucario',453:'Croagunk',459:'Snover',
+  468:'Togekiss',470:'Leafeon',471:'Glaceon',478:'Froslass',479:'Rotom',
+  495:'Snivy',498:'Tepig',501:'Oshawott',504:'Patrat',519:'Pidove',
+  531:'Audino',570:'Zorua',571:'Zoroark',572:'Minccino',577:'Solosis',
+  610:'Axew',619:'Mienfoo',620:'Mienshao',621:'Druddigon',
+  650:'Chespin',653:'Fennekin',656:'Froakie',657:'Frogadier',658:'Greninja',
+  659:'Bunnelby',660:'Diggersby',661:'Fletchling',662:'Fletchinder',666:'Vivillon',
+  669:'Flabébé',671:'Florges',674:'Pancham',675:'Pangoro',676:'Furfrou',
+  700:'Sylveon',701:'Hawlucha',702:'Dedenne',704:'Goomy',706:'Goodra',
+  716:'Xerneas',717:'Yveltal',719:'Diancie',721:'Volcanion',
+  722:'Rowlet',725:'Litten',728:'Popplio',744:'Rockruff',745:'Lycanroc',
+  748:'Toxapex',749:'Mudbray',750:'Mudsdale',758:'Salazzle',759:'Stufful',
+  760:'Bewear',763:'Tsareena',764:'Comfey',777:'Togedemaru',778:'Mimikyu',
+  785:'Tapu Koko',786:'Tapu Lele',787:'Tapu Bulu',788:'Tapu Fini',
+  791:'Solgaleo', 792:'Lunala', 800:'Necrozma',
+  810:'Grookey',813:'Scorbunny',816:'Sobble',831:'Wooloo',
+  835:'Yamper',844:'Sandaconda',845:'Cramorant',859:'Impidimp',
+  869:'Alcremie',877:'Morpeko',884:'Duraludon',888:'Zacian',889:'Zamazenta',
+  890:'Eternatus',898:'Calyrex',
+  906:'Sprigatito',909:'Fuecoco',912:'Quaxly',921:'Pawmi',924:'Tandemaus',
+  935:'Charcadet',950:'Klawf',955:'Flittle',967:'Cyclizar',974:'Cetoddle',
+  975:'Cetitan',985:'Cauda Gritante',989:'Choques Arenosos',
+  1000:'Gholdengo',1005:'Lua Rugindo',1007:'Koraidon',1008:'Miraidon',
+};
+
+var POKE_NAMES_JP = {
+  1:'フシギダネ',2:'フシギソウ',3:'フシギバナ',4:'ヒトカゲ',5:'リザード',6:'リザードン',
+  7:'ゼニガメ',8:'カメール',9:'カメックス',10:'キャタピー',11:'トランセル',12:'バタフリー',
+  13:'ビードル',14:'コクーン',15:'スピアー',16:'ポッポ',17:'ピジョン',18:'ピジョット',
+  19:'コラッタ',20:'ラッタ',25:'ピカチュウ',26:'ライチュウ',35:'ピッピ',36:'ピクシー',
+  37:'ロコン',38:'キュウコン',39:'プリン',40:'プクリン',52:'ニャース',53:'ペルシアン',
+  54:'コダック',55:'ゴルダック',63:'ケーシィ',64:'ユンゲラー',65:'フーディン',
+  74:'イシツブテ',79:'ヤドン',80:'ヤドラン',92:'ゴース',93:'ゴースト',94:'ゲンガー',
+  104:'カラカラ',105:'ガラガラ',113:'ラッキー',120:'ヒトデマン',121:'スターミー',
+  129:'コイキング',130:'ギャラドス',131:'ラプラス',132:'メタモン',133:'イーブイ',
+  143:'カビゴン',147:'ミニリュウ',148:'ハクリュー',149:'カイリュー',150:'ミュウツー',151:'ミュウ',
+  152:'チコリータ',155:'ヒノアラシ',158:'ワニノコ',172:'ピチュー',175:'トゲピー',
+  176:'トゲチック',196:'エーフィ',197:'ブラッキー',209:'ブルー',214:'ヘラクロス',
+  242:'ハピナス',248:'バンギラス',252:'キモリ',255:'アチャモ',258:'ミズゴロウ',
+  280:'ラルトス',281:'キルリア',282:'サーナイト',383:'グラードン',384:'レックウザ',
+  387:'ナエトル',390:'ヒコザル',393:'ポッチャマ',403:'コリンク',425:'フワンテ',
+  447:'リオル',448:'ルカリオ',468:'トゲキッス',470:'リーフィア',471:'グレイシア',
+  478:'ユキメノコ',479:'ロトム',495:'ツタージャ',498:'ポカブ',501:'ミジュマル',
+  531:'タブンネ',570:'ゾロア',571:'ゾロアーク',572:'チラーミィ',610:'キバゴ',
+  650:'ハリマロン',653:'フォッコ',656:'ケロマツ',657:'ゲコガシラ',658:'ゲッコウガ',
+  659:'ホルビー',660:'ホルード',661:'ヤヤコマ',662:'ヒノヤコマ',666:'ビビヨン',
+  675:'ゴロンダ',676:'トリミアン',681:'ギルガルド',699:'アマルルガ',700:'ニンフィア',
+  701:'ルチャブル',721:'ボルケニオン',722:'モクロー',725:'ニャビー',728:'アシマリ',
+  744:'イワンコ',748:'ドヒドイデ',758:'エンニュート',759:'ヌイコグマ',760:'キテルグマ',
+  777:'トゲデマル',778:'ミミッキュ',785:'カプ・コケコ',786:'カプ・テテフ',
+  787:'カプ・ブルル',788:'カプ・レヒレ',791:'ソルガレオ',792:'ルナアーラ',800:'ネクロズマ',
+  810:'サルノリ',813:'ヒバニー',816:'メッソン',831:'ウールー',835:'ワンパチ',
+  844:'サダイジャ',859:'ベロバー',877:'モルペコ',888:'ザシアン',889:'ザマゼンタ',
+  890:'ムゲンダイナ',898:'バドレックス',906:'ニャオハ',909:'ホゲータ',912:'クワッス',
+  921:'パモ',924:'イキリンコ',950:'ガケガニ',967:'サイクロス',
+  974:'ウパー',975:'ハルクジラ',985:'スクリームテール',989:'サンディシャック',
+  1000:'サーフゴー',1005:'ローリングムーン',1007:'コライドン',1008:'ミライドン',
+};
+
+function getPokeLocalName(num, name) {
+  if (LANG === 'pt' && POKE_NAMES_PT[num]) return POKE_NAMES_PT[num];
+  if (LANG === 'jp' && POKE_NAMES_JP[num]) return POKE_NAMES_JP[num];
+  return name; // fallback to canonical (EN) name
+}
+
+// ─── GENERATION RANGES ───────────────────────────────────────────────────────
+var GEN_RANGES = [
+  null,           // 0 = National (all)
+  [1,   151],     // Gen I
+  [152, 251],     // Gen II
+  [252, 386],     // Gen III
+  [387, 493],     // Gen IV
+  [494, 649],     // Gen V
+  [650, 721],     // Gen VI
+  [722, 809],     // Gen VII
+  [810, 905],     // Gen VIII
+  [906, 1025]     // Gen IX
+];
+
+function getGenRange(selectId) {
+  var val = parseInt(document.getElementById(selectId).value);
+  return GEN_RANGES[val] || null;
+}
+
+function filterByGen(entries, range) {
+  if (!range) return entries;
+  return entries.filter(function(e) { return e.number >= range[0] && e.number <= range[1]; });
+}
+
+function setFilter(mode, el) {
+  filterMode = mode;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function renderList() {
+  const q = normName(document.getElementById('filterInput').value.trim());
+  const sheetMode = document.getElementById('sheetModeToggle').checked;
+  let entries = [];
+
+  if (filterMode === 'have') {
+    // Only owned
+    entries = Object.values(collection).sort((a,b) => a.number - b.number);
+  } else if (filterMode === 'missing') {
+    // All POKEDEX entries not in collection
+    entries = POKEDEX
+      .filter(p => !collection[p.entry_number])
+      .map(p => ({number: p.entry_number, name: p.name, missing: true, ...calcPosition(p.entry_number)}))
+      .sort((a,b) => a.number - b.number);
+  } else {
+    // All: full POKEDEX, owned shown normally, missing shown faded
+    entries = POKEDEX
+      .map(p => {
+        if (collection[p.entry_number]) return collection[p.entry_number];
+        return {number: p.entry_number, name: p.name, missing: true, ...calcPosition(p.entry_number)};
+      })
+      .sort((a,b) => a.number - b.number);
+  }
+
+  // Apply generation filter
+  const genRange = getGenRange('genFilter');
+  entries = filterByGen(entries, genRange);
+
+  if (q) {
+    const num = parseInt(q);
+    entries = entries.filter(e =>
+      normName(e.name).includes(q) ||
+      (!isNaN(num) && String(e.number).includes(q))
+    );
+  }
+
+  const list = document.getElementById('entriesList');
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📭</div>' + t('list.empty') + '</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map(e => {
+    const pos = e.missing ? calcPosition(e.number) : e;
+    let sheetBadge = '';
+    if (sheetMode) {
+      const sheetNum = Math.ceil(pos.page / 2);
+      const side = pos.page % 2 !== 0 ? 'front' : 'back';
+      const sideLabel = side === 'front' ? t('binder.front') : t('binder.back');
+      sheetBadge = `<span class="sheet-badge ${side}">F${sheetNum} ${sideLabel}</span>`;
+    }
+    const loc = t('binder.page.label') + ' ' + pos.page + ' · ' + t('binder.pos.label') + ' ' + pos.spot;
+    const missingStyle = e.missing ? 'opacity:0.5;border-style:dashed' : '';
+    const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${e.number}.png`;
+    const copyText = '#' + e.number + ' ' + getPokeLocalName(e.number, e.name) + ' — ' + t('add.page') + ' ' + pos.page + ', ' + t('add.pos') + ' ' + pos.spot + ' (' + pos.spotLabel + ')';
+    return `<div class="entry-card" style="${missingStyle}" role="listitem">
+      <span class="num">#${e.number}</span>
+      <img class="poke-sprite" src="${imgUrl}" alt="${e.name}" loading="lazy" onerror="this.style.display='none'">
+      <span class="name">${getPokeLocalName(e.number, e.name)}</span>
+      <span class="loc">${loc}</span>
+      ${sheetBadge}
+      <div class="actions">
+        <button class="icon-btn copy" onclick="copyToClipboard('${copyText.replace(/'/g,"\\'")}',this)" title="Copiar localização" aria-label="Copiar localização de ${e.name}">📋</button>
+        ${!e.missing ? `<button class="icon-btn del" onclick="removeEntry(${e.number})" title="Remover" aria-label="Remover ${e.name}">✕</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const entries = Object.values(collection);
+  document.getElementById('statTotal').textContent = entries.length;
+
+  // Occupied pages
+  const occupiedPages = new Set(entries.map(e => e.page));
+  document.getElementById('statPages').textContent = occupiedPages.size;
+
+  // Complete pages vs complete sheets
+  const sheetMode = document.getElementById('sheetModeToggle').checked;
+  const owned = new Set(entries.map(e => e.number));
+  let completeCount = 0;
+  if (!sheetMode) {
+    // A page is complete if all 9 slots are owned
+    const maxPage = entries.length ? Math.max(...entries.map(e => e.page)) : 0;
+    for (let p = 1; p <= maxPage; p++) {
+      let full = true;
+      for (let s = 1; s <= 9; s++) {
+        if (!owned.has((p - 1) * 9 + s)) { full = false; break; }
+      }
+      if (full) completeCount++;
+    }
+    document.getElementById('statMaxLbl').textContent = t('stats.complete');
+  } else {
+    // A sheet is complete if both front (odd page) and back (even page) are fully owned
+    const maxPage = entries.length ? Math.max(...entries.map(e => e.page)) : 0;
+    const maxSheet = Math.ceil(maxPage / 2);
+    for (let sh = 1; sh <= maxSheet; sh++) {
+      const frontPage = sh * 2 - 1;
+      const backPage = sh * 2;
+      let full = true;
+      for (let pg of [frontPage, backPage]) {
+        for (let s = 1; s <= 9; s++) {
+          if (!owned.has((pg - 1) * 9 + s)) { full = false; break; }
+        }
+        if (!full) break;
+      }
+      if (full) completeCount++;
+    }
+    document.getElementById('statMaxLbl').textContent = t('stats.complete.sheet');
+  }
+  document.getElementById('statMax').textContent = entries.length ? completeCount : '—';
+
+  // Complete generations
+  const completeGens = [];
+  GEN_RANGES.slice(1).forEach(function(range, i) {
+    var complete = true;
+    for (var n = range[0]; n <= range[1]; n++) {
+      if (!owned.has(n)) { complete = false; break; }
+    }
+    if (complete) completeGens.push(i + 1);
+  });
+  document.getElementById('statGens').textContent = completeGens.length ? completeGens.map(function(g) { return 'Gen ' + g; }).join(', ') : '—';
+
+  // Missing ranges
+  if (!entries.length) { document.getElementById('missingRanges').textContent = '—'; return; }
+  const nums = new Set(entries.map(e => e.number));
+  const max2 = nums.size ? Math.max(...nums) : 0;
+  const missing = [];
+  for (let i = 1; i <= max2 && missing.length < 50; i++) if (!nums.has(i)) missing.push(i);
+  if (!missing.length) { document.getElementById('missingRanges').textContent = t('stats.nomissing'); return; }
+  // Group consecutive
+  const ranges = [];
+  let start = missing[0], prev = missing[0];
+  for (let i = 1; i < missing.length; i++) {
+    if (missing[i] !== prev + 1) { ranges.push(start===prev?`${start}`:`${start}–${prev}`); start=missing[i]; }
+    prev = missing[i];
+  }
+  ranges.push(start===prev?`${start}`:`${start}–${prev}`);
+  document.getElementById('missingRanges').innerHTML = ranges.map(r=>`<span>${r}</span>`).join('');
+}
+
+// ─── COPY ────────────────────────────────────────────────────────────────────
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓';
+    setTimeout(() => btn.textContent = '📋', 1500);
+    toast(t('toast.copied'), 'success');
+  }).catch(() => toast(t('toast.copyfail'), 'error'));
+}
+
+// ─── IMPORT / EXPORT ─────────────────────────────────────────────────────────
+function exportJSON() {
+  const data = Object.values(collection).sort((a,b)=>a.number-b.number);
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'pokemon-binder-data.json'; a.click();
+  URL.revokeObjectURL(url);
+  toast(t('toast.exported'), 'success');
+}
+
+function triggerImport() { document.getElementById('importInput').click(); }
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      // Check if it's a Pokédex file or a collection file
+      if (data.pokemon_entries || (Array.isArray(data) && data[0]?.pokemon_species)) {
+        // It's a pokédex
+        mergePokedex(data);
+        localStorage.setItem('pb_pokedex', ev.target.result);
+        toast(`Pokédex importada com ${POKEDEX.length} entradas!`, 'success');
+      } else {
+        // It's a collection
+        let entries = Array.isArray(data) ? data : Object.values(data);
+        let imported = 0, skipped = 0;
+        entries.forEach(entry => {
+          if (entry.number) {
+            const pos = calcPosition(entry.number);
+            collection[entry.number] = { number: entry.number, name: entry.name || '?', ...pos };
+            imported++;
+          }
+        });
+        saveCollection();
+        renderList();
+        renderStats();
+        toast(`Importados ${imported} Pokémon!`, 'success');
+      }
+    } catch(err) { toast(t('toast.invalid'), 'error'); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ─── DRAG & DROP ─────────────────────────────────────────────────────────────
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('dragover'); }
+function onDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.name.endsWith('.json')) { toast(t('toast.jsononly'), 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.pokemon_entries || (Array.isArray(data) && data[0] && data[0].pokemon_species)) {
+        mergePokedex(data);
+        localStorage.setItem('pb_pokedex', ev.target.result);
+        toast('Pokédex importada! ' + POKEDEX.length + ' entradas.', 'success');
+      } else {
+        const entries = Array.isArray(data) ? data : Object.values(data);
+        entries.forEach(function(entry) {
+          if (entry.number) collection[entry.number] = Object.assign({ number: entry.number, name: entry.name || '?' }, calcPosition(entry.number));
+        });
+        saveCollection(); renderList(); renderStats();
+        toast('Importados ' + entries.length + ' Pokemon!', 'success');
+      }
+    } catch(err) { toast('Ficheiro invalido.', 'error'); }
+  };
+  reader.readAsText(file);
+}
+
+// ─── THEME ───────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const light = document.getElementById('themeToggle').checked;
+  document.body.classList.toggle('light-mode', !light);
+  localStorage.setItem('pb_theme', light ? 'dark' : 'light');
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function toast(msg, type='') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function showConfirm(title, msg, onOk) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  const btn = document.getElementById('confirmOk');
+  btn.onclick = () => { onOk(); closeModal(); };
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeModal() { document.getElementById('confirmModal').classList.remove('open'); }
+
+// ─── LOAD THEME ───────────────────────────────────────────────────────────────
+(function() {
+  const t = localStorage.getItem('pb_theme');
+  if (t === 'light') { document.body.classList.add('light-mode'); document.getElementById('themeToggle').checked = false; }
+  else { document.getElementById('themeToggle').checked = true; }
+})();
+
+
+// ─── BINDER MODE ─────────────────────────────────────────────────────────────
+let binderSpread = 0;
+let binderFilterMode = 'have';
+
+function setBinderFilter(mode, el) {
+  binderFilterMode = mode;
+  document.querySelectorAll('#binderOverlay .filter-tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  renderBinderList();
+}
+
+function renderBinderList() {
+  var q = normName((document.getElementById('binderFilterInput').value || '').trim());
+  var sheetMode = document.getElementById('sheetModeToggle').checked;
+  var entries = Object.values(collection).sort(function(a,b) { return a.number - b.number; });
+
+  if (binderFilterMode === 'have') {
+    // already only owned — entries is correct
+  } else if (binderFilterMode === 'missing') {
+    entries = POKEDEX
+      .filter(function(p) { return !collection[p.entry_number]; })
+      .map(function(p) {
+        var pos = calcPosition(p.entry_number);
+        return Object.assign({number: p.entry_number, name: p.name, missing: true}, pos);
+      })
+      .sort(function(a,b) { return a.number - b.number; });
+  } else {
+    // All: full POKEDEX merged with collection
+    entries = POKEDEX
+      .map(function(p) {
+        if (collection[p.entry_number]) return collection[p.entry_number];
+        var pos = calcPosition(p.entry_number);
+        return Object.assign({number: p.entry_number, name: p.name, missing: true}, pos);
+      })
+      .sort(function(a,b) { return a.number - b.number; });
+  }
+
+  // Apply generation filter
+  var genRange = getGenRange('binderGenFilter');
+  entries = filterByGen(entries, genRange);
+
+  if (q) {
+    var num = parseInt(q);
+    entries = entries.filter(function(e) {
+      return normName(e.name).includes(q) || (!isNaN(num) && String(e.number).includes(q));
+    });
+  }
+
+  var list = document.getElementById('binderEntriesList');
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">📭</div>' + t('list.empty') + '</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map(function(e) {
+    var pos = e.missing ? calcPosition(e.number) : e;
+    var sheetBadge = '';
+    if (sheetMode) {
+      var sheetNum = Math.ceil(pos.page / 2);
+      var side = pos.page % 2 !== 0 ? 'front' : 'back';
+      var sideLabel = side === 'front' ? t('binder.front') : t('binder.back');
+      sheetBadge = '<span class="sheet-badge ' + side + '">F' + sheetNum + ' ' + sideLabel + '</span>';
+    }
+    var loc = t('binder.page.label') + ' ' + pos.page + ' · ' + t('binder.pos.label') + ' ' + pos.spot;
+    var missingStyle = e.missing ? 'opacity:0.5;border-style:dashed' : '';
+    var imgUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + e.number + '.png';
+    var copyText = '#' + e.number + ' ' + getPokeLocalName(e.number, e.name) + ' — ' + t('add.page') + ' ' + pos.page + ', ' + t('add.pos') + ' ' + pos.spot + ' (' + pos.spotLabel + ')';
+    var removeBtn = e.missing ? '' : '<button class="icon-btn del" onclick="removeEntry(' + e.number + ');renderBinderList();" title="Remover">✕</button>';
+    return '<div class="entry-card" style="' + missingStyle + '">' +
+      '<span class="num">#' + e.number + '</span>' +
+      '<img class="poke-sprite" src="' + imgUrl + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+      '<span class="name">' + getPokeLocalName(e.number, e.name) + '</span>' +
+      '<span class="loc">' + loc + '</span>' +
+      sheetBadge +
+      '<div class="actions">' +
+        '<button class="icon-btn copy" onclick="copyEntry(this,' + e.number + ')" title="Copiar">📋</button>' +
+        removeBtn +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function copyEntry(btn, num) {
+  var e = collection[num];
+  if (!e) return;
+  var pos = calcPosition(e.number);
+  var text = '#' + e.number + ' ' + getPokeLocalName(e.number, e.name) + ' — ' + t('add.page') + ' ' + pos.page + ', ' + t('add.pos') + ' ' + pos.spot + ' (' + pos.spotLabel + ')';
+  copyToClipboard(text, btn);
+}
+
+function toggleBinderMode() {
+  var overlay = document.getElementById('binderOverlay');
+  var open = overlay.style.display !== 'flex';
+  overlay.style.display = open ? 'flex' : 'none';
+  if (open) { binderSpread = 0; renderBinderSpread(); renderBinderList(); applyLang(); }
+}
+
+function maxBinderSpread() {
+  // Find the highest dex number that is either owned or exists in POKEDEX,
+  // but cap to the range that makes sense: up to the last page that contains
+  // any Pokémon known by the Pokédex, as long as we have at least one owned Pokémon.
+  var ownedNums = Object.keys(collection).map(Number);
+  if (!ownedNums.length) return 0;
+  var maxOwned = Math.max.apply(null, ownedNums);
+  // Extend to the end of the page that contains maxOwned,
+  // then one more spread to catch any partial page immediately after
+  var maxPage = Math.ceil(maxOwned / 9);
+  // If maxOwned is not the last slot of its page, the page is partial — already included
+  // Add one extra spread so the page immediately following is also reachable
+  // (catches the case where the last owned is e.g. slot 9 of page 112,
+  //  and page 113 has POKEDEX entries we want to show as "missing")
+  var extraPage = maxPage + 2; // show up to 2 pages beyond last owned
+  // But cap at the last page that has any POKEDEX entry
+  var maxDexNum = POKEDEX.length ? Math.max.apply(null, POKEDEX.map(function(p) { return p.entry_number; })) : maxOwned;
+  var maxDexPage = Math.ceil(maxDexNum / 9);
+  var finalPage = Math.min(extraPage, maxDexPage);
+  return Math.ceil((finalPage - 1) / 2);
+}
+
+function binderNext() {
+  if (binderSpread < maxBinderSpread()) { binderSpread++; renderBinderSpread(); }
+}
+
+function binderPrev() {
+  if (binderSpread > 0) { binderSpread--; renderBinderSpread(); }
+}
+
+function pageHasAnyPokemon(pageNum) {
+  // Returns true if the page has at least one Pokémon entry in POKEDEX or collection
+  var minDex = (pageNum - 1) * 9 + 1;
+  var maxDex = pageNum * 9;
+  for (var n = minDex; n <= maxDex; n++) {
+    if (collection[n]) return true;
+    if (POKEDEX.find(function(p) { return p.entry_number === n; })) return true;
+  }
+  return false;
+}
+
+function renderBinderSpread() {
+  var area = document.getElementById('binderPagesArea');
+  area.innerHTML = '';
+
+  var pages = [];
+  if (binderSpread === 0) {
+    pages = [1];
+  } else {
+    var left = binderSpread * 2;
+    var right = binderSpread * 2 + 1;
+    pages = [left, right];
+  }
+
+  var total = maxBinderSpread();
+  var visiblePages = pages.filter(function(p) { return pageHasAnyPokemon(p); });
+  var label = binderSpread === 0 ? t('binder.page') + ' 1' : t('binder.pages') + ' ' + pages[0] + '–' + pages[1];
+  document.getElementById('binderPageLabel').textContent = label;
+  document.getElementById('binderPrevBtn').disabled = binderSpread === 0;
+  document.getElementById('binderNextBtn').disabled = binderSpread >= total;
+
+  if (binderSpread === 0) {
+    var blank = document.createElement('div');
+    blank.className = 'binder-page';
+    blank.style.cssText = 'background:transparent;border-color:transparent;box-shadow:none;';
+    area.appendChild(blank);
+  } else if (visiblePages.length === 1 && visiblePages[0] === pages[1]) {
+    // Left page empty — show blank placeholder so right page stays right
+    var blankL = document.createElement('div');
+    blankL.className = 'binder-page';
+    blankL.style.cssText = 'background:transparent;border-color:transparent;box-shadow:none;';
+    area.appendChild(blankL);
+  }
+
+  visiblePages.forEach(function(pageNum) {
+    area.appendChild(buildBinderPage(pageNum));
+  });
+
+  // If nothing visible at all, show a message
+  if (!visiblePages.length && binderSpread !== 0) {
+    area.innerHTML = '<div style="color:var(--text-muted);font-size:0.9rem;text-align:center;">' + t('binder.empty') + '</div>';
+  }
+}
+
+function buildBinderPage(pageNum) {
+  var wrap = document.createElement('div');
+  wrap.className = 'binder-page';
+
+  var sheetMode = document.getElementById('sheetModeToggle').checked;
+  var titleText = t('binder.page') + ' ' + pageNum;
+  if (sheetMode) {
+    var sheet = Math.ceil(pageNum / 2);
+    var side = pageNum % 2 !== 0 ? t('binder.front') : t('binder.back');
+    titleText += ' · ' + t('binder.sheet') + ' ' + sheet + ' ' + side;
+  }
+  wrap.innerHTML = '<div class="binder-page-title">' + titleText + '</div><div class="binder-page-grid" id="grid-p' + pageNum + '"></div>';
+
+  var grid = wrap.querySelector('.binder-page-grid');
+  var now = Date.now();
+  var ONE_DAY = 86400000;
+
+  for (var slot = 1; slot <= 9; slot++) {
+    var dexNum = (pageNum - 1) * 9 + slot;
+    var owned = collection[dexNum];
+    var pokeEntry = POKEDEX.find(function(p) { return p.entry_number === dexNum; });
+    var name = owned ? owned.name : (pokeEntry ? pokeEntry.name : null);
+
+    var cell = document.createElement('div');
+    cell.className = 'binder-slot';
+
+    if (!name) {
+      cell.classList.add('empty');
+      cell.innerHTML = '<span class="slot-num">' + slot + '</span>' +
+        '<div style="width:52px;height:52px;margin-top:6px;"></div>' +
+        '<span class="slot-dex">#' + dexNum + '</span>' +
+        '<span class="slot-name">—</span>';
+    } else {
+      var isRecent = owned && owned._addedAt && (now - owned._addedAt) < ONE_DAY;
+      cell.classList.add(owned ? 'owned' : 'missing');
+      if (isRecent) cell.classList.add('recent-add');
+      var imgUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + dexNum + '.png';
+      cell.innerHTML = '<span class="slot-num">' + slot + '</span>' +
+        '<img src="' + imgUrl + '" alt="' + name + '" loading="lazy" onerror="this.style.opacity=\'0.1\'">' +
+        '<span class="slot-dex">#' + dexNum + '</span>' +
+        '<span class="slot-name">' + getPokeLocalName(dexNum, name) + '</span>';
+    }
+    grid.appendChild(cell);
+  }
+  return wrap;
+}
+
+document.addEventListener('keydown', function(e) {
+  var overlay = document.getElementById('binderOverlay');
+  if (overlay.style.display !== 'flex') return;
+  if (e.key === 'ArrowRight') binderNext();
+  if (e.key === 'ArrowLeft') binderPrev();
+});
+
+
+// ─── I18N ─────────────────────────────────────────────────────────────────────
+var LANG = localStorage.getItem('pb_lang') || 'pt';
+
+var T = {
+  pt: {
+    'app.title': '📘 Pokémon Binder Locator',
+    'header.howto': '❓ Como funciona',
+    'header.binder': '📖 My Binder',
+    'header.export': '⬇ Exportar',
+    'header.import': '⬆ Importar',
+    'header.backup': '↩ Backup',
+    'header.clear': '🗑 Limpar',
+    'header.sheetmode': 'Frente/Verso',
+    'add.title': '🔍 Adicionar Pokémon',
+    'add.label': 'Nome ou número',
+    'add.hint': 'Pesquisa parcial suportada · ↑↓ navegar · Esc limpar · Ctrl+F focar',
+    'add.save': '✅ Guardar',
+    'add.clear': '✕ Limpar',
+    'add.placeholder': 'Ex: pikachu, pika, 25...',
+    'add.already': 'Já na coleção',
+    'add.page': 'Página',
+    'add.pos': 'Posição',
+    'add.sheet': 'Folha física',
+    'stats.title': '📊 Estatísticas',
+    'stats.total': 'Total guardados',
+    'stats.pages': 'Páginas ocupadas',
+    'stats.complete': 'Págs. completas',
+    'stats.complete.sheet': 'Folhas completas',
+    'stats.gens': 'Gens. completas',
+    'stats.missing': 'Intervalos em falta (primeiros 50)',
+    'stats.nomissing': '(nenhum intervalo em falta!)',
+    'list.title': '📋 Coleção',
+    'list.filter': '🔎  Filtrar coleção...',
+    'list.all': 'Todos',
+    'list.have': '✅ Tenho',
+    'list.missing': '❌ Falta',
+    'list.empty': 'Nenhum Pokémon encontrado.',
+    'gen.national': '🌍 Nacional',
+    'gen.label': 'Gen',
+    'drag.title': '📂 Importar por Arrastar',
+    'drag.hint': 'Arrasta um ficheiro .json aqui ou clica para selecionar',
+    'binder.prev': '◀ Anterior',
+    'binder.next': 'Seguinte ▶',
+    'binder.close': '✕ Fechar',
+    'binder.collection': '📋 Coleção',
+    'binder.filter': '🔎  Filtrar...',
+    'binder.page': 'Página',
+    'binder.pages': 'Páginas',
+    'binder.front': 'Frente',
+    'binder.back': 'Verso',
+    'binder.sheet': 'Folha',
+    'binder.page.label': 'Pág.',
+    'binder.pos.label': 'Pos.',
+    'help.title': '❓ Como funciona',
+    'help.close': 'Fechar',
+    'confirm.cancel': 'Cancelar',
+    'confirm.ok': 'Confirmar',
+    'toast.saved': 'guardado! Pág.',
+    'toast.pos': 'Posição',
+    'toast.exported': 'Exportado com sucesso!',
+    'toast.imported': 'Pokémon importados!',
+    'toast.pokedex': 'Pokédex importada!',
+    'toast.backup': 'Backup restaurado!',
+    'toast.cleared': 'Coleção limpa.',
+    'toast.removed': 'Entrada removida.',
+    'toast.copied': 'Copiado!',
+    'toast.invalid': 'Ficheiro inválido.',
+    'toast.jsononly': 'Apenas ficheiros .json',
+    'toast.nobackup': 'Nenhum backup encontrado.',
+    'toast.copyfail': 'Falha ao copiar.',
+    'toast.nosel': 'Nenhum Pokémon selecionado.',
+    'confirm.overwrite.title': 'Substituir entrada?',
+    'confirm.overwrite.msg': 'já existe na coleção. Deseja substituir?',
+    'confirm.remove.title': 'Remover entrada',
+    'confirm.remove.msg': 'Remover da coleção?',
+    'confirm.clear.title': 'Limpar Coleção',
+    'confirm.clear.msg': 'Tens a certeza? Todos os dados serão apagados.',
+    'confirm.backup.title': 'Restaurar Backup',
+    'binder.empty': 'Sem Pokémon nesta abertura.',
+    'binder.empty': 'No Pokémon on this spread.',
+    'binder.empty': 'このページにポケモンがいません。',
+    'banner.title': 'Gostas da ferramenta?',
+    'banner.sub': 'É gratuita e sem anúncios. Se quiseres apoiar, um café ajuda muito!',
+    'banner.btn': '☕ Ko-fi',
+    'banner.close': 'Fechar',
+    'help.content': `      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📦 Armazenamento local</h4>
+      <p>A tua coleção é guardada <strong>apenas no teu browser</strong> (localStorage). Isto significa:</p>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>Funciona <strong>sem conta e sem internet</strong></li>
+        <li>Se limpares o cache/histórico do browser, <strong>perdes a coleção</strong></li>
+        <li>Mudar de dispositivo ou browser → <strong>coleção não aparece</strong></li>
+        <li>Recomendamos <strong>exportar o JSON regularmente</strong> como backup</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">➕ Adicionar um Pokémon</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>Escreve o nome (parcial também funciona: <code>pika</code> → Pikachu) ou o número da Pokédex</li>
+        <li>Seleciona o Pokémon no autocomplete → é <strong>guardado automaticamente</strong></li>
+        <li>A posição no binder é calculada automaticamente com base no número da Pokédex</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📐 Como funciona o cálculo</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li><strong>Página:</strong> ceil(número / 9)</li>
+        <li><strong>Posição na página (1–9):</strong> ((número − 1) % 9) + 1</li>
+        <li>Grelha 3×3: posição 1 = canto sup. esq., 5 = centro, 9 = canto inf. dir.</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📄 Modo Frente/Verso</h4>
+      <p>Ativa no header. Cada folha física tem frente (página ímpar) e verso (página par). Ex: Folha 1 Frente = página 1, Folha 1 Verso = página 2.</p>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📂 Importar/Exportar</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>Exporta a coleção como <code>.json</code> para guardar ou transferir</li>
+        <li>Importa um ficheiro de coleção exportado anteriormente (os dados são <strong>fundidos</strong>, não substituídos)</li>
+        <li>Também podes importar o ficheiro da Pokédex completa (formato <code>pokemon_entries</code>) para melhorar o autocomplete</li>
+        <li>Podes arrastar e largar ficheiros JSON diretamente na zona de importação</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📖 My Binder</h4>
+      <p>Visualização em modo binder, com abertura de duas páginas. Navega com os botões ou com as teclas ◀▶ do teclado. Pokémon que tens aparecem com cor normal; os que faltam aparecem a 20% de opacidade.</p>
+    `
+  },
+  en: {
+    'app.title': '📘 Pokémon Binder Locator',
+    'header.howto': '❓ How it works',
+    'header.binder': '📖 My Binder',
+    'header.export': '⬇ Export',
+    'header.import': '⬆ Import',
+    'header.backup': '↩ Backup',
+    'header.clear': '🗑 Clear',
+    'header.sheetmode': 'Front/Back',
+    'add.title': '🔍 Add Pokémon',
+    'add.label': 'Name or number',
+    'add.hint': 'Partial search supported · ↑↓ navigate · Esc clear · Ctrl+F focus',
+    'add.save': '✅ Save',
+    'add.clear': '✕ Clear',
+    'add.placeholder': 'e.g. pikachu, pika, 25...',
+    'add.already': 'Already in collection',
+    'add.page': 'Page',
+    'add.pos': 'Position',
+    'add.sheet': 'Physical sheet',
+    'stats.title': '📊 Statistics',
+    'stats.total': 'Total saved',
+    'stats.pages': 'Occupied pages',
+    'stats.complete': 'Complete pages',
+    'stats.complete.sheet': 'Complete sheets',
+    'stats.gens': 'Complete gens',
+    'stats.missing': 'Missing ranges (first 50)',
+    'stats.nomissing': '(no missing ranges!)',
+    'list.title': '📋 Collection',
+    'list.filter': '🔎  Filter collection...',
+    'list.all': 'All',
+    'list.have': '✅ Have',
+    'list.missing': '❌ Missing',
+    'list.empty': 'No Pokémon found.',
+    'gen.national': '🌍 National',
+    'gen.label': 'Gen',
+    'drag.title': '📂 Drag & Drop Import',
+    'drag.hint': 'Drag a .json file here or click to select',
+    'binder.prev': '◀ Previous',
+    'binder.next': 'Next ▶',
+    'binder.close': '✕ Close',
+    'binder.collection': '📋 Collection',
+    'binder.filter': '🔎  Filter...',
+    'binder.page': 'Page',
+    'binder.pages': 'Pages',
+    'binder.front': 'Front',
+    'binder.back': 'Back',
+    'binder.sheet': 'Sheet',
+    'binder.page.label': 'Pg.',
+    'binder.pos.label': 'Pos.',
+    'help.title': '❓ How it works',
+    'help.close': 'Close',
+    'confirm.cancel': 'Cancel',
+    'confirm.ok': 'Confirm',
+    'toast.saved': 'saved! Page',
+    'toast.pos': 'Position',
+    'toast.exported': 'Exported successfully!',
+    'toast.imported': 'Pokémon imported!',
+    'toast.pokedex': 'Pokédex imported!',
+    'toast.backup': 'Backup restored!',
+    'toast.cleared': 'Collection cleared.',
+    'toast.removed': 'Entry removed.',
+    'toast.copied': 'Copied!',
+    'toast.invalid': 'Invalid file.',
+    'toast.jsononly': '.json files only',
+    'toast.nobackup': 'No backup found.',
+    'toast.copyfail': 'Copy failed.',
+    'toast.nosel': 'No Pokémon selected.',
+    'confirm.overwrite.title': 'Replace entry?',
+    'confirm.overwrite.msg': 'already in collection. Replace?',
+    'confirm.remove.title': 'Remove entry',
+    'confirm.remove.msg': 'Remove from collection?',
+    'confirm.clear.title': 'Clear Collection',
+    'confirm.clear.msg': 'Are you sure? All data will be deleted.',
+    'confirm.backup.title': 'Restore Backup',
+    'banner.title': 'Enjoying the tool?',
+    'banner.sub': 'Free and ad-free. If you want to support it, a coffee goes a long way!',
+    'banner.btn': '☕ Ko-fi',
+    'banner.close': 'Close',
+    'help.content': `      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📦 Local Storage</h4>
+      <p>Your collection is saved <strong>in your browser only</strong> (localStorage). This means:</p>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>Works <strong>without an account or internet</strong></li>
+        <li>Clearing browser cache/history <strong>deletes your collection</strong></li>
+        <li>Switching device or browser → <strong>collection won't appear</strong></li>
+        <li>We recommend <strong>exporting JSON regularly</strong> as a backup</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">➕ Adding a Pokémon</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>Type the name (partial works: <code>pika</code> → Pikachu) or the Pokédex number</li>
+        <li>Select the Pokémon from autocomplete → it is <strong>saved automatically</strong></li>
+        <li>Binder position is calculated automatically from the Pokédex number</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📐 How the calculation works</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li><strong>Page:</strong> ceil(number / 9)</li>
+        <li><strong>Slot (1–9):</strong> ((number − 1) % 9) + 1</li>
+        <li>3×3 grid: slot 1 = top-left, 5 = centre, 9 = bottom-right</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📄 Front/Back Mode</h4>
+      <p>Toggle in the header. Each physical sheet has a front (odd page) and back (even page). E.g. Sheet 1 Front = page 1, Sheet 1 Back = page 2.</p>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📂 Import/Export</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>Export your collection as <code>.json</code> to save or transfer</li>
+        <li>Import a previously exported file (data is <strong>merged</strong>, not replaced)</li>
+        <li>You can also import a full Pokédex file (<code>pokemon_entries</code> format) to improve autocomplete</li>
+        <li>Drag and drop JSON files directly onto the import zone</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📖 My Binder</h4>
+      <p>Visual binder mode with two-page spread. Navigate with buttons or ◀▶ keyboard keys. Pokémon you have appear in full colour; missing ones appear at 20% opacity.</p>
+    `
+  },
+  jp: {
+    'app.title': '📘 ポケモン バインダー ロケーター',
+    'header.howto': '❓ 使い方',
+    'header.binder': '📖 マイバインダー',
+    'header.export': '⬇ エクスポート',
+    'header.import': '⬆ インポート',
+    'header.backup': '↩ バックアップ',
+    'header.clear': '🗑 クリア',
+    'header.sheetmode': '表/裏',
+    'add.title': '🔍 ポケモンを追加',
+    'add.label': '名前または番号',
+    'add.hint': '部分検索対応 · ↑↓ナビ · Escクリア · Ctrl+Fフォーカス',
+    'add.save': '✅ 保存',
+    'add.clear': '✕ クリア',
+    'add.placeholder': '例: pikachu, pika, 25...',
+    'add.already': 'コレクションに登録済み',
+    'add.page': 'ページ',
+    'add.pos': 'スロット',
+    'add.sheet': 'シート',
+    'stats.title': '📊 統計',
+    'stats.total': '合計登録数',
+    'stats.pages': '使用ページ数',
+    'stats.complete': '完成ページ数',
+    'stats.complete.sheet': '完成シート数',
+    'stats.gens': '完成世代',
+    'stats.missing': '未取得の範囲（最初の50件）',
+    'stats.nomissing': '（未取得なし！）',
+    'list.title': '📋 コレクション',
+    'list.filter': '🔎  フィルター...',
+    'list.all': 'すべて',
+    'list.have': '✅ 持っている',
+    'list.missing': '❌ 未取得',
+    'list.empty': 'ポケモンが見つかりません。',
+    'gen.national': '🌍 全国',
+    'gen.label': '世代',
+    'drag.title': '📂 ドラッグ＆ドロップ インポート',
+    'drag.hint': '.jsonファイルをここにドラッグするかクリックして選択',
+    'binder.prev': '◀ 前へ',
+    'binder.next': '次へ ▶',
+    'binder.close': '✕ 閉じる',
+    'binder.collection': '📋 コレクション',
+    'binder.filter': '🔎  フィルター...',
+    'binder.page': 'ページ',
+    'binder.pages': 'ページ',
+    'binder.front': '表',
+    'binder.back': '裏',
+    'binder.sheet': 'シート',
+    'binder.page.label': 'ページ',
+    'binder.pos.label': 'スロット',
+    'help.title': '❓ 使い方',
+    'help.close': '閉じる',
+    'confirm.cancel': 'キャンセル',
+    'confirm.ok': '確認',
+    'toast.saved': '保存しました！ページ',
+    'toast.pos': 'スロット',
+    'toast.exported': 'エクスポート完了！',
+    'toast.imported': 'ポケモンをインポートしました！',
+    'toast.pokedex': 'ポケモン図鑑をインポートしました！',
+    'toast.backup': 'バックアップを復元しました！',
+    'toast.cleared': 'コレクションをクリアしました。',
+    'toast.removed': 'エントリを削除しました。',
+    'toast.copied': 'コピーしました！',
+    'toast.invalid': 'ファイルが無効です。',
+    'toast.jsononly': '.jsonファイルのみ対応',
+    'toast.nobackup': 'バックアップが見つかりません。',
+    'toast.copyfail': 'コピーに失敗しました。',
+    'toast.nosel': 'ポケモンが選択されていません。',
+    'confirm.overwrite.title': 'エントリを上書き？',
+    'confirm.overwrite.msg': 'はすでにコレクションにあります。上書きしますか？',
+    'confirm.remove.title': 'エントリを削除',
+    'confirm.remove.msg': 'コレクションから削除しますか？',
+    'confirm.clear.title': 'コレクションをクリア',
+    'confirm.clear.msg': 'よろしいですか？すべてのデータが削除されます。',
+    'confirm.backup.title': 'バックアップを復元',
+        'banner.title': 'ツールを楽しんでいますか？',
+    'banner.sub': '無料・広告なし。サポートしたい方はコーヒー1杯でも大歓迎！',
+    'banner.btn': '☕ Ko-fi',
+    'banner.close': '閉じる',
+    'help.content': `
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📦 ローカル保存について</h4>
+      <p>コレクションは<strong>ブラウザのみに保存</strong>されます（localStorage）。つまり：</p>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>アカウントもインターネットも<strong>不要</strong></li>
+        <li>ブラウザのキャッシュを消すと<strong>コレクションも消えます</strong></li>
+        <li>デバイスやブラウザを変えると<strong>表示されません</strong></li>
+        <li>定期的に<strong>JSONエクスポートでバックアップ</strong>することをおすすめします</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">➕ ポケモンの追加方法</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li>名前（部分入力OK：<code>pika</code>→ピカチュウ）または図鑑番号を入力</li>
+        <li>候補から選ぶと<strong>自動的に保存</strong>されます</li>
+        <li>バインダーの位置は図鑑番号から自動計算</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📐 計算方法</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li><strong>ページ：</strong> ceil(番号 / 9)</li>
+        <li><strong>スロット（1〜9）：</strong> ((番号 − 1) % 9) + 1</li>
+        <li>3×3グリッド：1=左上、5=中央、9=右下</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📄 表/裏モード</h4>
+      <p>ヘッダーで切り替え。各シートは表（奇数ページ）と裏（偶数ページ）で構成。例：シート1表=1ページ目、シート1裏=2ページ目。</p>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📂 インポート/エクスポート</h4>
+      <ul style="margin:8px 0 12px 16px;list-style:disc;">
+        <li><code>.json</code>形式でエクスポートして保存・転送</li>
+        <li>以前エクスポートしたファイルをインポート（データは<strong>統合</strong>されます）</li>
+        <li>ポケモン図鑑ファイル（<code>pokemon_entries</code>形式）もインポート可</li>
+        <li>JSONファイルをドラッグ＆ドロップも対応</li>
+      </ul>
+      <h4 style="color:var(--text);margin-bottom:8px;font-size:0.95rem;">📖 マイバインダー</h4>
+      <p>見開き表示でバインダーを確認。ボタンまたは◀▶キーでナビゲート。持っているポケモンは通常表示、未取得は20%の透明度で表示されます。</p>
+    `
+  }
+};
+
+function t(key) {
+  return (T[LANG] && T[LANG][key]) || (T['pt'][key]) || key;
+}
+
+function setLang(lang) {
+  LANG = lang;
+  localStorage.setItem('pb_lang', lang);
+  applyLang();
+  renderList();
+  renderStats();
+  if (document.getElementById('binderOverlay').style.display === 'flex') {
+    renderBinderSpread();
+    renderBinderList();
+  }
+}
+
+function applyLang() {
+  // Page title
+  document.title = 'Pokémon Binder Locator';
+
+  // Header title
+  var h1 = document.querySelector('header h1');
+  if (h1) h1.innerHTML = '<span class="logo">📘</span> Pokémon Binder Locator';
+
+  // Help and binder buttons
+  safeText('helpBtn', t('header.howto'));
+  safeText('binderModeLabel', t('header.binder'));
+  safeText('binderPrevBtn', t('binder.prev'));
+  safeText('binderNextBtn', t('binder.next'));
+  safeText('binderCloseBtn', t('binder.close'));
+
+  // Header other buttons (export, import, backup, clear)
+  var btns = document.querySelectorAll('.header-actions .btn:not(#helpBtn):not(#binderModeBtn)');
+  var btnKeys = ['header.export','header.import','header.backup','header.clear'];
+  btns.forEach(function(btn, i) {
+    if (btnKeys[i] && !btn.id && !btn.querySelector('input')) btn.textContent = t(btnKeys[i]);
+  });
+
+  // Sheet mode label
+  safeText('sheetModeLabel', t('header.sheetmode'));
+
+  // Add card
+  safeText('addCardTitle', t('add.title'));
+  var addLbl = document.getElementById('addLabel');
+  if (addLbl) addLbl.innerHTML = t('add.label') + ' <kbd>Enter</kbd>';
+  safeText('searchHint', t('add.hint'));
+  safeText('saveBtnLabel', t('add.save'));
+  safeText('clearBtnLabel', t('add.clear'));
+
+  // Placeholders
+  var ps = document.getElementById('pokeSearch');
+  if (ps) ps.placeholder = t('add.placeholder');
+  var fi = document.getElementById('filterInput');
+  if (fi) fi.placeholder = t('list.filter');
+  var bfi = document.getElementById('binderFilterInput');
+  if (bfi) bfi.placeholder = t('binder.filter');
+
+  // Stats card
+  safeText('statsCardTitle', t('stats.title'));
+  safeText('lbl-total', t('stats.total'));
+  safeText('lbl-pages', t('stats.pages'));
+  safeText('lbl-gens', t('stats.gens'));
+  safeText('missingLabel', t('stats.missing'));
+
+  // List card
+  safeText('listCardTitle', t('list.title'));
+  safeText('binderCollectionTitle', t('binder.collection'));
+
+  // Drag card
+  safeText('dragTitle', t('drag.title'));
+  var dz = document.getElementById('dropZone');
+  if (dz) dz.innerHTML = t('drag.hint').replace('.json', '<strong>.json</strong>');
+
+  // Filter tabs - main
+  document.querySelectorAll('.filter-tab[data-filter]').forEach(function(btn) {
+    btn.textContent = t('list.' + btn.getAttribute('data-filter'));
+  });
+
+  // Gen selects
+  updateGenOptions('genFilter');
+  updateGenOptions('binderGenFilter');
+
+  // Confirm modal buttons
+  safeText('confirmCancelBtn', t('confirm.cancel'));
+  safeText('confirmOk', t('confirm.ok'));
+
+  // Header action buttons
+  safeText('exportBtn', t('header.export'));
+  safeText('importBtn', t('header.import'));
+  safeText('backupBtn', t('header.backup'));
+  safeText('clearBtn', t('header.clear'));
+  safeText('binderModeBtn', t('header.binder'));
+
+  // Binder overlay filter tabs
+  document.querySelectorAll('[data-filter]').forEach(function(btn) {
+    btn.textContent = t('list.' + btn.getAttribute('data-filter'));
+  });
+
+  // Binder nav/close
+  safeText('binderPrevBtn', t('binder.prev'));
+  safeText('binderNextBtn', t('binder.next'));
+  safeText('binderCloseBtn', t('binder.close'));
+  safeText('binderCollectionTitle', t('binder.collection'));
+
+  // Support banner
+  safeText('bannerTitle', t('banner.title'));
+  safeText('bannerSub', t('banner.sub'));
+  safeText('bannerClose', '✕');
+  var bannerBtn = document.getElementById('bannerBtn');
+  if (bannerBtn) bannerBtn.textContent = t('banner.btn');
+
+  // Complete/sheet label
+  var sheetMode = document.getElementById('sheetModeToggle');
+  var lbl = document.getElementById('statMaxLbl');
+  if (lbl) lbl.textContent = (sheetMode && sheetMode.checked) ? t('stats.complete.sheet') : t('stats.complete');
+
+}
+
+
+function safeText(id, text) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+function updateGenOptions(selectId) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  var val = sel.value;
+  sel.options[0].text = t('gen.national');
+  for (var i = 1; i <= 9; i++) {
+    if (sel.options[i]) sel.options[i].text = t('gen.label') + ' ' + (
+      ['I','II','III','IV','V','VI','VII','VIII','IX'][i-1]
+    );
+  }
+  sel.value = val;
+}
+
+function openHelp() {
+  document.getElementById('helpContent').innerHTML = t('help.content');
+  document.getElementById('helpModal').classList.add('open');
+  document.getElementById('helpModalTitle').textContent = t('help.title');
+  document.querySelector('#helpModal .btn.primary').textContent = t('help.close');
+}
+
+function closeHelp() {
+  document.getElementById('helpModal').classList.remove('open');
+}
+
+// Init lang on load
+(function() {
+  var saved = localStorage.getItem('pb_lang') || 'pt';
+  LANG = saved;
+  var sel = document.getElementById('langSelect');
+  if (sel) sel.value = saved;
+})();
+
+
+// Click outside AC to close
+document.addEventListener('click', e => {
+  if (!document.getElementById('searchWrap').contains(e.target)) closeAC();
+});
+
+document.addEventListener('DOMContentLoaded', function() { init(); });
+</script>
+
