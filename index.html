@@ -88,6 +88,7 @@
             top: 0;
             z-index: 100;
             box-shadow: var(--shadow);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
 
         .header-row {
@@ -1057,7 +1058,6 @@
             <button class="btn" onclick="exportJSON()" id="exportBtn">⬇ Exportar</button>
             <button class="btn" onclick="triggerImport()" id="importBtn">⬆ Importar</button>
             <button class="btn" onclick="triggerPokedexImport()" id="pokedexImportBtn">📥 Importar Pokédex</button>
-            <button class="btn" onclick="restoreBackup()" id="backupBtn">↩ Backup</button>
             <button class="btn danger" onclick="confirmClearAll()" id="clearBtn">🗑 Limpar</button>
             <button class="btn" onclick="openHelp()" id="helpBtn">❓ Como funciona</button>
             <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -1072,10 +1072,13 @@
                 <div class="card">
                     <h2 id="addCardTitle">🔍 Adicionar Pokémon</h2>
                     <label for="pokeSearch" id="addLabel">Nome ou número <kbd>Enter</kbd> para guardar</label>
-                    <div class="search-wrap" id="searchWrap">
+                    <div style="display:flex;gap:8px;align-items:flex-start;">
+                      <div class="search-wrap" id="searchWrap" style="flex:1;">
                         <input type="text" id="pokeSearch" placeholder="Ex: pikachu, pika, 25..." autocomplete="off"
-                               oninput="onSearchInput()" onkeydown="onSearchKey(event)" aria-label="Nome ou número do Pokémon" aria-autocomplete="list" aria-controls="autocomplete-box">
+                               oninput="onSearchInput()" onkeydown="onSearchKey(event)" aria-label="Nome ou número do Pokémon" aria-autocomplete="list" aria-controls="autocomplete-box" style="margin-bottom:0;width:100%;">
                         <div id="autocomplete-box" role="listbox"></div>
+                      </div>
+                      <button class="btn" onclick="clearInputs()" style="flex-shrink:0;padding:10px 12px;margin-top:0;" aria-label="Limpar pesquisa" id="clearBtnLabel">✕</button>
                     </div>
                     <div class="shortcut-hint" id="searchHint">Pesquisa parcial suportada · <kbd>↑↓</kbd> navegar · <kbd>Esc</kbd> limpar · <kbd>Ctrl+F</kbd> focar</div>
 
@@ -1088,9 +1091,8 @@
                         <img id="rImg" class="result-img" src="" alt="" style="display:none">
                     </div>
 
-                    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-                        <button class="btn primary" onclick="saveEntry()" id="saveBtnLabel" style="flex:1">✅ Guardar</button>
-                        <button class="btn" onclick="clearInputs()" id="clearBtnLabel">✕ Limpar</button>
+                         <div style="margin-top:12px;">
+                        <button class="btn primary" onclick="saveEntry()" id="saveBtnLabel" style="width:100%">✅ Guardar</button>
                     </div>
                 </div>
 
@@ -1186,7 +1188,12 @@
                     <span id="binderPageLabel" style="font-size:0.82rem;color:var(--text-muted);font-weight:400;"></span>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                    <button class="btn" onclick="binderPrev()" id="binderPrevBtn">◀ Anterior</button>
+                    <div class="grid-size-picker" id="binderGridPicker" title="Tamanho do binder">
+                        <button class="grid-size-btn" id="binderGridBtn2" onclick="saveGridSize(2)">2×2</button>
+                        <button class="grid-size-btn" id="binderGridBtn3" onclick="saveGridSize(3)">3×3</button>
+                        <button class="grid-size-btn" id="binderGridBtn4" onclick="saveGridSize(4)">4×4</button>
+                    </div>
+                                        <button class="btn" onclick="binderPrev()" id="binderPrevBtn">◀ Anterior</button>
                     <button class="btn" onclick="binderNext()" id="binderNextBtn">Seguinte ▶</button>
                     <button class="btn" onclick="toggleBinderMode()" id="binderCloseBtn">✕ Fechar</button>
                 </div>
@@ -1317,8 +1324,7 @@
 
 let POKEDEX = []; // Will hold {entry_number, name} objects
 
-// Embedded minimal Pokédex (gens 1-9 names) - we'll try to load from the user's JSON
-// but also have a built-in fallback for common Pokémon
+// Embedded minimal Pokédex (gens 1-9 names)
 const BUILTIN_POKEMON = [
   [1,"bulbasaur"],[2,"ivysaur"],[3,"venusaur"],[4,"charmander"],[5,"charmeleon"],[6,"charizard"],
   [7,"squirtle"],[8,"wartortle"],[9,"blastoise"],[10,"caterpie"],[11,"metapod"],[12,"butterfree"],
@@ -1609,8 +1615,9 @@ function updateGridSizeButtons() {
   [2,3,4].forEach(function(s) {
     var btn = document.getElementById('gridBtn' + s);
     if (btn) btn.classList.toggle('primary', GRID_SIZE === s);
+    var bb = document.getElementById('binderGridBtn' + s);
+    if (bb) bb.classList.toggle('primary', GRID_SIZE === s);
   });
-
 }
 
 function getSpotLabel(spot, size) {
@@ -1667,6 +1674,8 @@ function searchPokedex(q) {
   return POKEDEX.filter(p => normName(p.name).includes(q)).slice(0, 10);
 }
 
+let _isDeletingKey = false;
+
 function onSearchInput() {
   // Any manual typing cancels the pending auto-clear
   if (_autoClearTimer) { clearTimeout(_autoClearTimer); _autoClearTimer = null; }
@@ -1674,10 +1683,15 @@ function onSearchInput() {
   acResults = searchPokedex(q);
   acIndex = -1;
   renderAutocomplete();
+  // When deleting, just show suggestions — don't auto-select
+  if (_isDeletingKey) {
+    currentEntry = null;
+    document.getElementById('resultBox').classList.remove('visible');
+    return;
+  }
   if (acResults.length === 1 || (acResults.length > 0 && normName(acResults[0].name) === normName(q))) {
     selectAcResult(acResults[0]);
   } else {
-    // Try exact number
     const num = parseInt(q);
     if (!isNaN(num)) {
       const found = POKEDEX.find(p => p.entry_number === num);
@@ -1714,10 +1728,12 @@ function highlightMatch(name, q) {
 }
 
 function onSearchKey(e) {
+  _isDeletingKey = (e.key === 'Backspace' || e.key === 'Delete');
   const box = document.getElementById('autocomplete-box');
   if (e.key === 'ArrowDown') { acIndex = Math.min(acIndex+1, acResults.length-1); renderAutocomplete(); e.preventDefault(); }
   else if (e.key === 'ArrowUp') { acIndex = Math.max(acIndex-1, -1); renderAutocomplete(); e.preventDefault(); }
   else if (e.key === 'Enter') {
+    _isDeletingKey = false;
     if (acIndex >= 0 && acResults[acIndex]) { selectAcResult(acResults[acIndex]); closeAC(); }
     else if (currentEntry) saveEntry();
     else if (acResults.length === 1) { selectAcResult(acResults[0]); }
@@ -1743,11 +1759,11 @@ function selectAcResult(p) {
   renderResultBox(currentEntry);
   // Auto-save
   doSave();
-  // Re-enable input after 2s
+  // Re-enable input after 1s
   setTimeout(() => {
     input.readOnly = false;
     input.style.opacity = '';
-  }, 2000);
+  }, 1000);
   // Schedule auto-clear at 30s, keyed so it can be cancelled
   _autoClearTimer = setTimeout(() => {
     _autoClearTimer = null;
@@ -2203,7 +2219,7 @@ function renderList() {
       <span class="loc">${loc}</span>
       ${sheetBadge}
       <div class="actions">
-        <button class="icon-btn copy" onclick="copyToClipboard('${copyText.replace(/'/g,"\\'")}',this)" title="Copiar localização" aria-label="Copiar localização de ${e.name}">📋</button>
+        <button class="icon-btn goto" onclick="goToBinder(${e.number})" title="Ir para o Binder" aria-label="Ir para o Binder">📍</button>
         ${!e.missing ? `<button class="icon-btn del" onclick="removeEntry(${e.number})" title="Remover" aria-label="Remover ${e.name}">✕</button>` : ''}
       </div>
     </div>`;
@@ -2482,11 +2498,35 @@ function renderBinderList() {
       '<span class="loc">' + loc + '</span>' +
       sheetBadge +
       '<div class="actions">' +
-        '<button class="icon-btn copy" onclick="copyEntry(this,' + e.number + ')" title="Copiar">📋</button>' +
+        '<button class="icon-btn goto" onclick="goToBinder(' + e.number + ')" title="Ir para o Binder" aria-label="Ir para o Binder">📍</button>' +
         removeBtn +
       '</div>' +
     '</div>';
   }).join('');
+}
+
+function goToBinder(num) {
+  var e = collection[num];
+  if (!e) return;
+  var overlay = document.getElementById('binderOverlay');
+  if (overlay.style.display !== 'flex') { toggleBinderMode(); }
+  var activeDex = getActiveDexEntries();
+  var dexIdx = activeDex.findIndex(function(p) { return p.entry_number === num; });
+  var spp = getSlotsPerPage();
+  var targetPage = dexIdx >= 0 ? Math.ceil((dexIdx + 1) / spp) : e.page;
+  var targetSpread = targetPage <= 1 ? 0 : Math.ceil((targetPage - 1) / 2);
+  binderSpread = targetSpread;
+  renderBinderSpread();
+  setTimeout(function() {
+    var grid = document.getElementById('grid-p' + targetPage);
+    if (!grid) return;
+    var slotInPage = dexIdx >= 0 ? (dexIdx % spp) + 1 : e.spot;
+    var cell = grid.children[slotInPage - 1];
+    if (cell) {
+      cell.style.boxShadow = '0 0 0 3px var(--accent), 0 0 20px var(--accent)';
+      setTimeout(function() { cell.style.boxShadow = ''; cell.style.transition = 'box-shadow 0.6s'; }, 3000);
+    }
+  }, 80);
 }
 
 function copyEntry(btn, num) {
@@ -3237,6 +3277,36 @@ function closeHelp() {
   if (sel) sel.value = saved;
 })();
 
+
+// ─── HIDE HEADER ON SCROLL (mobile) ─────────────────────────────────────────
+(function() {
+  var lastY = 0;
+  var ticking = false;
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        var currentY = window.scrollY || window.pageYOffset;
+        var header = document.querySelector('header');
+        if (!header) { ticking = false; return; }
+        // Only hide on mobile (viewport width < 768px)
+        if (window.innerWidth < 768) {
+          if (currentY > lastY && currentY > 60) {
+            header.style.transform = 'translateY(-100%)';
+            header.style.boxShadow = 'none';
+          } else {
+            header.style.transform = '';
+            header.style.boxShadow = '';
+          }
+        } else {
+          header.style.transform = '';
+        }
+        lastY = currentY;
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
+})();
 
 // Click outside AC to close
 document.addEventListener('click', e => {
