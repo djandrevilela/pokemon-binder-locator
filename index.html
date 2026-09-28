@@ -1011,7 +1011,9 @@
                     <h2 id="statsCardTitle">📊 Estatísticas</h2>
                     <div class="stats-grid" id="statsGrid" style="grid-template-columns:1fr 1fr;">
                         <div class="stat-chip"><div class="val" id="statTotal">0</div><div class="lbl" id="lbl-total">Total guardados</div></div>
+                        <div class="stat-chip"><div class="val" id="statPages">0</div><div class="lbl" id="lbl-pages">Páginas ocupadas</div></div>
                         <div class="stat-chip"><div class="val" id="statMax">—</div><div class="lbl" id="statMaxLbl">Págs. completas</div></div>
+                        <div class="stat-chip"><div class="val" id="statGens">—</div><div class="lbl" id="lbl-gens">Gens. completas</div></div>
                         <div class="stat-chip"><div class="val" id="statEvos">—</div><div class="lbl" id="lbl-evos">Linhas evolutivas</div></div>
                         <div class="stat-chip" id="donutChip" style="display:flex;align-items:center;gap:10px;justify-content:center;">
                           <svg id="donutSvg" width="52" height="52" viewBox="0 0 52 52" style="flex-shrink:0;">
@@ -2233,6 +2235,44 @@ function renderStats() {
   }
   ranges.push(start===prev?`${start}`:`${start}–${prev}`);
   document.getElementById('missingRanges').innerHTML = ranges.map(r=>`<span>${r}</span>`).join('');
+
+  // ── Evolutionary lines ──────────────────────────────────────────────────────
+  var evos = countCompleteEvos();
+  document.getElementById('statEvos').textContent = evos.complete + ' / ' + evos.total;
+
+  // ── Completude % + donut ────────────────────────────────────────────────────
+  var activeDexTotal = getActiveDexEntries().length;
+  var ownedInDex = 0;
+  var activeDexNums = new Set(getActiveDexEntries().map(function(p) { return p.entry_number; }));
+  Object.keys(collection).forEach(function(n) { if (activeDexNums.has(parseInt(n))) ownedInDex++; });
+  var pct = activeDexTotal > 0 ? Math.round(ownedInDex / activeDexTotal * 100) : 0;
+  document.getElementById('statPct').textContent = pct + '%';
+  document.getElementById('donutPct').textContent = pct + '%';
+  var circ = 2 * Math.PI * 20; // r=20 → ~125.7
+  var arc = document.getElementById('donutArc');
+  if (arc) {
+    arc.setAttribute('stroke-dasharray', (pct / 100 * circ).toFixed(1) + ' ' + circ.toFixed(1));
+  }
+
+  // ── Recently added (last 5) ─────────────────────────────────────────────────
+  var withDate = entries.filter(function(e) { return e._addedAt; })
+    .sort(function(a, b) { return b._addedAt - a._addedAt })
+    .slice(0, 5);
+  var recentList = document.getElementById('statRecentList');
+  if (recentList) {
+    if (!withDate.length) {
+      recentList.innerHTML = '<span style="font-size:0.78rem;color:var(--text-muted);">—</span>';
+    } else {
+      recentList.innerHTML = withDate.map(function(e) {
+        var imgUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + e.number + '.png';
+        return '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:44px;">' +
+          '<img src="' + imgUrl + '" alt="' + e.name + '" style="width:36px;height:36px;image-rendering:pixelated;" loading="lazy" onerror="this.style.opacity=0.2">' +
+          '<span style="font-size:0.6rem;color:var(--text-muted);text-align:center;text-transform:capitalize;line-height:1.2;">' + getPokeLocalName(e.number, e.name) + '</span>' +
+          '<span style="font-size:0.58rem;color:var(--text-muted);">#' + e.number + '</span>' +
+          '</div>';
+      }).join('');
+    }
+  }
 }
 
 // ─── COPY ────────────────────────────────────────────────────────────────────
@@ -2603,6 +2643,9 @@ var T = {
     'stats.pages': 'Páginas ocupadas',
     'stats.complete': 'Págs. completas',
     'stats.complete.sheet': 'Folhas completas',
+    'stats.evos': 'Linhas evolutivas',
+    'stats.pct': 'Completude',
+    'stats.recent': 'Recentemente adicionados',
     'stats.gens': 'Gens. completas',
     'stats.missing': 'Intervalos em falta (primeiros 50)',
     'stats.nomissing': '(nenhum intervalo em falta!)',
@@ -2745,6 +2788,9 @@ var T = {
     'stats.pages': 'Occupied pages',
     'stats.complete': 'Complete pages',
     'stats.complete.sheet': 'Complete sheets',
+    'stats.evos': 'Evo lines complete',
+    'stats.pct': 'Completion',
+    'stats.recent': 'Recently added',
     'stats.gens': 'Complete gens',
     'stats.missing': 'Missing ranges (first 50)',
     'stats.nomissing': '(no missing ranges!)',
@@ -2884,6 +2930,9 @@ var T = {
     'stats.pages': '使用ページ数',
     'stats.complete': '完成ページ数',
     'stats.complete.sheet': '完成シート数',
+    'stats.evos': '進化系統',
+    'stats.pct': '完成度',
+    'stats.recent': '最近追加',
     'stats.gens': '完成世代',
     'stats.missing': '未取得の範囲（最初の50件）',
     'stats.nomissing': '（未取得なし！）',
@@ -3065,6 +3114,9 @@ function applyLang() {
   safeText('lbl-total', t('stats.total'));
   safeText('lbl-pages', t('stats.pages'));
   safeText('lbl-gens', t('stats.gens'));
+  safeText('lbl-evos', t('stats.evos'));
+  safeText('lbl-pct', t('stats.pct'));
+  safeText('lbl-recent', t('stats.recent'));
   safeText('missingLabel', t('stats.missing'));
 
   // List card
