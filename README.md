@@ -63,7 +63,7 @@ Example (2×2): Pikachu (#25) → Page 7, Slot 1 (top-left)
 
 Download `index.html` and open it in any modern browser. That's it — no server, no install, no build step.
 
-Or visit the live version at: **[your-url-here]**
+Or visit the live version at: **[Pokémon Binder Locator](https://djandrevilela.github.io/pokemon-binder-locator/)**
 
 ---
 
